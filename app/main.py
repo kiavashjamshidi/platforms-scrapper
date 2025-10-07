@@ -1,14 +1,19 @@
 """Main FastAPI application."""
 from datetime import datetime
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from loguru import logger
+import os
+import asyncio
 
 from app.config import settings
 from app.database import get_db, init_db
 from app.api.routes import router as api_router
 from app.schemas import HealthResponse
+from app.collector.scheduler import StreamCollector
 
 # Initialize database on startup
 init_db()
@@ -34,16 +39,38 @@ app.add_middleware(
 # Include API routes (without prefix since routes are at root level)
 app.include_router(api_router, tags=["streams"])
 
+# Mount static files
+static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+
+@app.get("/dashboard", tags=["dashboard"])
+async def dashboard():
+    """Serve the dashboard HTML."""
+    static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+    dashboard_file = os.path.join(static_path, "index.html")
+    if os.path.exists(dashboard_file):
+        return FileResponse(dashboard_file)
+    else:
+        return {"error": "Dashboard not found", "static_path": static_path}
+
 
 @app.get("/", tags=["root"])
 async def root():
-    """Root endpoint."""
-    return {
-        "message": "Live Streaming Data Collection API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/health"
-    }
+    """Root endpoint - redirect to dashboard."""
+    static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+    dashboard_file = os.path.join(static_path, "index.html")
+    if os.path.exists(dashboard_file):
+        return FileResponse(dashboard_file)
+    else:
+        return {
+            "message": "Live Streaming Data Collection API",
+            "version": "1.0.0",
+            "docs": "/docs",
+            "health": "/health",
+            "dashboard": "/dashboard"
+        }
 
 
 @app.get("/health", response_model=HealthResponse, tags=["health"])
@@ -65,12 +92,45 @@ async def health_check(db: Session = Depends(get_db)):
     )
 
 
+@app.post("/collect-data", tags=["collection"])
+async def trigger_data_collection(background_tasks: BackgroundTasks):
+    """Manually trigger data collection."""
+    background_tasks.add_task(collect_kick_data)
+    return {"message": "Data collection started", "status": "running"}
+
+
+async def collect_kick_data():
+    """Collect data from Kick platform."""
+    try:
+        logger.info("Starting Kick data collection...")
+        collector = StreamCollector()
+        await collector.collect_kick_streams()
+        logger.info("Kick data collection completed")
+    except Exception as e:
+        logger.error(f"Error during data collection: {e}")
+
+
+# Background task to collect data periodically
+async def start_background_tasks():
+    """Start background data collection tasks."""
+    while True:
+        try:
+            await collect_kick_data()
+            await asyncio.sleep(120)  # Collect every 2 minutes
+        except Exception as e:
+            logger.error(f"Background task error: {e}")
+            await asyncio.sleep(60)  # Wait 1 minute before retrying
+
+
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup."""
     logger.info("Starting Live Streaming Data Collection API")
     logger.info(f"API version: 1.0.0")
     logger.info(f"Database URL: {settings.database_url.split('@')[-1]}")  # Hide credentials
+    
+    # Start background data collection
+    asyncio.create_task(start_background_tasks())
 
 
 @app.on_event("shutdown")

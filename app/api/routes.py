@@ -146,6 +146,7 @@ async def get_most_active_streamers(
         raise HTTPException(status_code=400, detail=str(e))
     
     # Aggregate stream statistics by channel
+    # Use SQLite-compatible date truncation with strftime
     results = (
         db.query(
             Channel.channel_id,
@@ -153,7 +154,7 @@ async def get_most_active_streamers(
             Channel.display_name,
             Channel.follower_count,
             Channel.profile_image_url,
-            func.count(func.distinct(func.date_trunc('hour', LiveSnapshot.started_at))).label("stream_count"),
+            func.count(func.distinct(func.strftime('%Y-%m-%d %H', LiveSnapshot.started_at))).label("stream_count"),
             func.count(LiveSnapshot.id).label("total_snapshots"),
             func.avg(LiveSnapshot.viewer_count).label("avg_viewers"),
             func.max(LiveSnapshot.viewer_count).label("peak_viewers"),
