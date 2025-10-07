@@ -90,8 +90,9 @@ async def get_top_live_streams(
     )
     
     # For Kick, filter out channels with 0 followers as they're likely inactive or have data issues
-    if platform == "kick":
-        query = query.filter(Channel.follower_count > 0)
+    # Commenting out this filter to show more streams
+    # if platform == "kick":
+    #     query = query.filter(Channel.follower_count > 0)
     
     # Apply sorting based on sort_by parameter
     if sort_by == "followers":
@@ -478,10 +479,25 @@ async def get_streams(
     Get live streams for frontend compatibility.
     """
     try:
-        # Call the existing top live streams endpoint
-        streams = await get_top_live_streams(platform=platform, limit=limit, sort_by=sort_by, db=db)
+        # Call the existing top live streams endpoint and convert to expected format
+        api_streams = await get_top_live_streams(platform=platform, limit=limit, sort_by=sort_by, db=db)
+        
+        # Convert API response to frontend-expected format
+        streams = []
+        for stream in api_streams:
+            streams.append({
+                "title": stream.get("title", "Untitled Stream"),
+                "channel": stream.get("username", stream.get("display_name", "Unknown")),
+                "platform": stream.get("platform", platform),
+                "viewers": stream.get("viewer_count", 0),
+                "followers": stream.get("follower_count", 0),
+                "category": stream.get("game_name", "Unknown"),
+                "url": stream.get("stream_url", f"https://{platform}.com/{stream.get('username', '')}")
+            })
+        
         return {"streams": streams}
     except Exception as e:
+        print(f"Error in get_streams: {e}")
         # Return demo data if database query fails
         demo_streams = []
         for i in range(min(limit, 20)):
@@ -695,7 +711,7 @@ async def search_streams(
                 "platform": platform,
                 "viewers": snapshot.viewer_count or 0,
                 "followers": channel.follower_count or 0,
-                "category": snapshot.category or "Unknown",
+                "category": snapshot.game_name or "Unknown",
                 "url": snapshot.stream_url or f"https://{platform}.com/{channel.username}"
             })
         
