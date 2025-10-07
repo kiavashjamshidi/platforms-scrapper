@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Streaming Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,7 +16,78 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f6fa;
             display: flex;
+            flex-direction: column;
             height: 100vh;
+        }
+        
+        /* Top Filters Bar */
+        .top-filters {
+            background: #2f3542;
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none; /* Hidden by default, shown when needed */
+        }
+        
+        .top-filters.show {
+            display: block;
+        }
+        
+        .filters-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-item label {
+            font-size: 12px;
+            color: #a4b0be;
+            font-weight: 500;
+        }
+        
+        .filter-item select,
+        .filter-item input {
+            padding: 8px 12px;
+            border: 1px solid #57606f;
+            border-radius: 4px;
+            background: #3d4454;
+            color: white;
+            font-size: 14px;
+            min-width: 120px;
+        }
+        
+        .filter-item input[type="text"] {
+            min-width: 200px;
+        }
+        
+        .refresh-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #ee5a52;
+        }
+        
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
         }
         
         /* Sidebar */
@@ -69,45 +141,6 @@
         
         .nav-button.active {
             background: #ff6b6b;
-        }
-        
-        .filter-section {
-            background: #3d4454;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .filter-section h4 {
-            margin-bottom: 10px;
-            color: #ff6b6b;
-            font-size: 14px;
-        }
-        
-        .filter-group {
-            margin-bottom: 15px;
-        }
-        
-        .filter-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #a4b0be;
-        }
-        
-        .filter-group select,
-        .filter-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #57606f;
-            border-radius: 4px;
-            background: #2f3542;
-            color: white;
-            font-size: 12px;
-        }
-        
-        .filter-group input[type="text"] {
-            background: #2f3542;
         }
         
         /* Main Content */
@@ -259,35 +292,45 @@
         }
         
         /* Channel History Styles */
-        .history-item {
+        .history-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
             padding: 15px;
-            border-bottom: 1px solid #eee;
+            border-radius: 6px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
-        .history-item:last-child {
-            border-bottom: none;
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2f3542;
         }
         
-        .history-date {
+        .stat-label {
             font-size: 12px;
             color: #57606f;
-            margin-bottom: 5px;
-        }
-        
-        .history-stats {
-            display: flex;
-            gap: 15px;
+            text-transform: uppercase;
             margin-top: 5px;
         }
         
-        .stat-item {
-            font-size: 12px;
-            color: #57606f;
+        .chart-container {
+            padding: 20px;
+            height: 400px;
         }
         
         /* Responsive */
         @media (max-width: 768px) {
-            body {
+            .main-layout {
                 flex-direction: column;
             }
             
@@ -299,36 +342,30 @@
             .main-content {
                 padding: 10px;
             }
+            
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-item {
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .filter-item label {
+                min-width: 80px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2>🎮 Analytics Dashboard</h2>
-        
-        <div class="nav-section">
-            <h3>Navigation</h3>
-            <button class="nav-button active" onclick="loadSection('live-streams')">
-                📺 Live Streams
-            </button>
-            <button class="nav-button" onclick="loadSection('most-active')">
-                🔥 Most Active
-            </button>
-            <button class="nav-button" onclick="loadSection('search')">
-                🔍 Search Streams
-            </button>
-            <button class="nav-button" onclick="loadSection('channel-history')">
-                📊 Channel History
-            </button>
-            <button class="nav-button" onclick="loadSection('categories')">
-                🎯 Categories
-            </button>
-        </div>
-        
-        <div class="filter-section">
-            <h4>🎛️ Filters</h4>
-            
-            <div class="filter-group">
+    <!-- Top Filters Bar -->
+    <div id="topFilters" class="top-filters">
+        <div class="filters-container">
+            <!-- Platform Filter - Always visible -->
+            <div class="filter-item">
                 <label>Platform</label>
                 <select id="platformFilter">
                     <option value="kick">Kick</option>
@@ -336,7 +373,8 @@
                 </select>
             </div>
             
-            <div class="filter-group">
+            <!-- Limit Filter - For data lists -->
+            <div class="filter-item" id="limitFilterItem">
                 <label>Limit</label>
                 <select id="limitFilter">
                     <option value="10">10 results</option>
@@ -346,7 +384,8 @@
                 </select>
             </div>
             
-            <div class="filter-group">
+            <!-- Sort Filter - For sortable data -->
+            <div class="filter-item" id="sortFilterItem">
                 <label>Sort By</label>
                 <select id="sortFilter">
                     <option value="viewers">Viewers</option>
@@ -354,17 +393,20 @@
                 </select>
             </div>
             
-            <div class="filter-group" id="searchGroup" style="display: none;">
+            <!-- Search Filter - For search section -->
+            <div class="filter-item" id="searchFilterItem" style="display: none;">
                 <label>Search Query</label>
                 <input type="text" id="searchQuery" placeholder="Enter search term...">
             </div>
             
-            <div class="filter-group" id="channelGroup" style="display: none;">
+            <!-- Channel Filter - For channel history -->
+            <div class="filter-item" id="channelFilterItem" style="display: none;">
                 <label>Channel ID/Username</label>
                 <input type="text" id="channelInput" placeholder="Enter channel...">
             </div>
             
-            <div class="filter-group" id="timeWindowGroup" style="display: none;">
+            <!-- Time Window Filter - For historical data -->
+            <div class="filter-item" id="timeWindowFilterItem" style="display: none;">
                 <label>Time Window</label>
                 <select id="timeWindow">
                     <option value="24h">Last 24 hours</option>
@@ -372,239 +414,535 @@
                     <option value="30d">Last 30 days</option>
                 </select>
             </div>
-        </div>
-        
-        <div class="nav-section">
-            <h3>Actions</h3>
-            <button class="nav-button" onclick="refreshData()">
-                🔄 Refresh Data
-            </button>
-            <button class="nav-button" onclick="exportData()">
-                📋 Export CSV
+            
+            <!-- Refresh Button -->
+            <button class="refresh-btn" onclick="refreshData()">
+                🔄 Refresh
             </button>
         </div>
     </div>
-    
-    <div class="main-content">
-        <div class="header">
-            <h1 id="pageTitle">Live Streams</h1>
-            <div class="breadcrumb" id="breadcrumb">Dashboard > Live Streams</div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <h2>🎮 Analytics Dashboard</h2>
+            
+            <div class="nav-section">
+                <h3>Navigation</h3>
+                <button class="nav-button active" onclick="loadSection('live-streams')">
+                    📺 Live Streams
+                </button>
+                <button class="nav-button" onclick="loadSection('most-active')">
+                    🔥 Most Active
+                </button>
+                <button class="nav-button" onclick="loadSection('search')">
+                    🔍 Search Streams
+                </button>
+                <button class="nav-button" onclick="loadSection('channel-history')">
+                    📊 Channel History
+                </button>
+                <button class="nav-button" onclick="loadSection('categories')">
+                    🎯 Categories
+                </button>
+            </div>
+            
+            <div class="nav-section">
+                <h3>Actions</h3>
+                <button class="nav-button" onclick="exportData()">
+                    📋 Export CSV
+                </button>
+                <button class="nav-button" onclick="collectData()">
+                    🔄 Collect Data
+                </button>
+            </div>
         </div>
         
-        <div class="content-section">
-            <div class="section-header">
-                <h2 class="section-title" id="sectionTitle">Live Streams</h2>
+        <div class="main-content">
+            <div class="header">
+                <h1 id="pageTitle">Live Streams</h1>
+                <div class="breadcrumb" id="breadcrumb">Dashboard > Live Streams</div>
             </div>
-            <div id="content">
-                <div class="loading">Loading data...</div>
+            
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title" id="sectionTitle">Live Streams</h2>
+                </div>
+                <div id="content">
+                    <div class="loading">Loading data...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE = '';
         let currentSection = 'live-streams';
-        let currentSort = { column: null, direction: 'asc' };
         let currentData = [];
-
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSection('live-streams');
+        let currentSort = { column: '', direction: 'asc' };
+        let historyChart = null;
+        
+        // Show/hide filter bar based on section
+        function showFilterBar(filtersToShow = []) {
+            const topFilters = document.getElementById('topFilters');
+            const allFilterItems = [
+                'limitFilterItem',
+                'sortFilterItem', 
+                'searchFilterItem',
+                'channelFilterItem',
+                'timeWindowFilterItem'
+            ];
             
-            // Add event listeners for filters
-            document.getElementById('platformFilter').addEventListener('change', refreshData);
-            document.getElementById('limitFilter').addEventListener('change', refreshData);
-            document.getElementById('sortFilter').addEventListener('change', refreshData);
-            document.getElementById('searchQuery').addEventListener('input', debounce(refreshData, 500));
-            document.getElementById('channelInput').addEventListener('input', debounce(refreshData, 500));
-            document.getElementById('timeWindow').addEventListener('change', refreshData);
-        });
-
-        function loadSection(section) {
-            // Update active button - find the clicked button
-            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
-            
-            // Find and activate the button that was clicked
-            const buttons = document.querySelectorAll('.nav-button');
-            buttons.forEach(btn => {
-                if (btn.textContent.includes('Live Streams') && section === 'live-streams') btn.classList.add('active');
-                if (btn.textContent.includes('Most Active') && section === 'most-active') btn.classList.add('active');
-                if (btn.textContent.includes('Search Streams') && section === 'search') btn.classList.add('active');
-                if (btn.textContent.includes('Channel History') && section === 'channel-history') btn.classList.add('active');
-                if (btn.textContent.includes('Categories') && section === 'categories') btn.classList.add('active');
+            // Hide all optional filters first
+            allFilterItems.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = 'none';
             });
             
+            // Show requested filters
+            filtersToShow.forEach(filterId => {
+                const element = document.getElementById(filterId);
+                if (element) element.style.display = 'flex';
+            });
+            
+            // Show the filter bar
+            topFilters.classList.add('show');
+        }
+        
+        function hideFilterBar() {
+            document.getElementById('topFilters').classList.remove('show');
+        }
+        
+        // Load different sections with appropriate filters
+        function loadSection(section) {
             currentSection = section;
             
-            // Show/hide relevant filter groups
-            document.getElementById('searchGroup').style.display = section === 'search' ? 'block' : 'none';
-            document.getElementById('channelGroup').style.display = section === 'channel-history' ? 'block' : 'none';
-            document.getElementById('timeWindowGroup').style.display = ['most-active', 'channel-history', 'categories'].includes(section) ? 'block' : 'none';
+            // Update navigation buttons
+            document.querySelectorAll('.nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
             
-            // Update page title and breadcrumb
-            const titles = {
-                'live-streams': 'Live Streams',
-                'most-active': 'Most Active Streamers',
-                'search': 'Search Streams',
-                'channel-history': 'Channel History',
-                'categories': 'Categories & Games'
+            // Configure filters for each section
+            switch(section) {
+                case 'live-streams':
+                    showFilterBar(['limitFilterItem', 'sortFilterItem']);
+                    document.getElementById('pageTitle').textContent = 'Live Streams';
+                    document.getElementById('breadcrumb').textContent = 'Dashboard > Live Streams';
+                    document.getElementById('sectionTitle').textContent = 'Live Streams';
+                    loadLiveStreams();
+                    break;
+                    
+                case 'most-active':
+                    showFilterBar(['limitFilterItem', 'sortFilterItem']);
+                    document.getElementById('pageTitle').textContent = 'Most Active';
+                    document.getElementById('breadcrumb').textContent = 'Dashboard > Most Active';
+                    document.getElementById('sectionTitle').textContent = 'Most Active Streams';
+                    loadMostActive();
+                    break;
+                    
+                case 'search':
+                    showFilterBar(['searchFilterItem', 'limitFilterItem']);
+                    document.getElementById('pageTitle').textContent = 'Search Streams';
+                    document.getElementById('breadcrumb').textContent = 'Dashboard > Search';
+                    document.getElementById('sectionTitle').textContent = 'Search Results';
+                    loadSearchInterface();
+                    break;
+                    
+                case 'channel-history':
+                    showFilterBar(['channelFilterItem', 'timeWindowFilterItem']);
+                    document.getElementById('pageTitle').textContent = 'Channel History';
+                    document.getElementById('breadcrumb').textContent = 'Dashboard > Channel History';
+                    document.getElementById('sectionTitle').textContent = 'Channel Analytics';
+                    loadChannelHistory();
+                    break;
+                    
+                case 'categories':
+                    showFilterBar(['limitFilterItem']);
+                    document.getElementById('pageTitle').textContent = 'Categories';
+                    document.getElementById('breadcrumb').textContent = 'Dashboard > Categories';
+                    document.getElementById('sectionTitle').textContent = 'Stream Categories';
+                    loadCategories();
+                    break;
+                    
+                default:
+                    hideFilterBar();
+            }
+        }
+        
+        // Refresh data based on current section and filters
+        function refreshData() {
+            switch(currentSection) {
+                case 'live-streams':
+                    loadLiveStreams();
+                    break;
+                case 'most-active':
+                    loadMostActive();
+                    break;
+                case 'search':
+                    performSearch();
+                    break;
+                case 'channel-history':
+                    loadChannelHistory();
+                    break;
+                case 'categories':
+                    loadCategories();
+                    break;
+            }
+        }
+        
+        // Get current filter values
+        function getCurrentFilters() {
+            return {
+                platform: document.getElementById('platformFilter').value,
+                limit: parseInt(document.getElementById('limitFilter').value),
+                sort: document.getElementById('sortFilter').value,
+                search: document.getElementById('searchQuery').value,
+                channel: document.getElementById('channelInput').value,
+                timeWindow: document.getElementById('timeWindow').value
             };
-            
-            document.getElementById('pageTitle').textContent = titles[section];
-            document.getElementById('breadcrumb').textContent = `Dashboard > ${titles[section]}`;
-            document.getElementById('sectionTitle').textContent = titles[section];
-            
-            refreshData();
         }
-
-        async function refreshData() {
-            const platform = document.getElementById('platformFilter').value;
-            const limit = document.getElementById('limitFilter').value;
-            const sortBy = document.getElementById('sortFilter').value;
-            
-            document.getElementById('content').innerHTML = '<div class="loading">Loading data...</div>';
+        
+        // Load live streams with filters
+        async function loadLiveStreams() {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading live streams...</div>';
             
             try {
-                let data;
+                const filters = getCurrentFilters();
+                const platform = filters.platform;
+                const limit = filters.limit;
                 
-                switch(currentSection) {
-                    case 'live-streams':
-                        data = await fetchLiveStreams(platform, limit, sortBy);
-                        displayStreamsTable(data, 'Live Streams');
-                        break;
-                        
-                    case 'most-active':
-                        const mostActiveTimeWindow = document.getElementById('timeWindow').value;
-                        data = await fetchMostActive(platform, limit, mostActiveTimeWindow);
-                        displayMostActiveTable(data, 'Most Active Streamers');
-                        break;
-                        
-                    case 'search':
-                        const query = document.getElementById('searchQuery').value;
-                        if (query) {
-                            data = await fetchSearch(platform, query, limit);
-                            displayStreamsTable(data, `Search Results for "${query}"`);
-                        } else {
-                            document.getElementById('content').innerHTML = '<div class="no-data">Enter a search term to see results</div>';
-                        }
-                        break;
-                        
-                    case 'channel-history':
-                        const channelId = document.getElementById('channelInput').value;
-                        if (channelId) {
-                            const channelTimeWindow = document.getElementById('timeWindow').value;
-                            data = await fetchChannelHistory(platform, channelId, channelTimeWindow);
-                            displayChannelHistory(data, channelId);
-                        } else {
-                            document.getElementById('content').innerHTML = '<div class="no-data">Enter a channel ID or username to see history</div>';
-                        }
-                        break;
-                        
-                    case 'categories':
-                        const categoriesTimeWindow = document.getElementById('timeWindow').value;
-                        data = await fetchCategories(platform, categoriesTimeWindow, limit);
-                        displayCategoriesTable(data, 'Popular Categories');
-                        break;
+                const response = await fetch(`/api/streams?platform=${platform}&limit=${limit}`);
+                if (!response.ok) throw new Error('Failed to fetch streams');
+                
+                const data = await response.json();
+                currentData = data.streams || [];
+                
+                if (currentData.length === 0) {
+                    content.innerHTML = '<div class="no-data">No live streams found</div>';
+                    return;
                 }
+                
+                renderStreamsTable(currentData);
             } catch (error) {
-                document.getElementById('content').innerHTML = `<div class="no-data">Error loading data: ${error.message}</div>`;
+                console.error('Error loading streams:', error);
+                content.innerHTML = '<div class="no-data">Error loading streams</div>';
             }
         }
-
-        // API Functions
-        async function fetchLiveStreams(platform, limit, sortBy) {
-            const response = await fetch(`${API_BASE}/live/top?platform=${platform}&limit=${limit}&sort_by=${sortBy}`);
-            if (!response.ok) throw new Error('Failed to fetch live streams');
-            return await response.json();
-        }
-
-        async function fetchMostActive(platform, limit, timeWindow) {
+        
+        // Load most active streams
+        async function loadMostActive() {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading most active streams...</div>';
+            
             try {
-                const response = await fetch(`${API_BASE}/live/most-active?platform=${platform}&limit=${limit}&window=${timeWindow}`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        return []; // Return empty array if endpoint not found
-                    }
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const filters = getCurrentFilters();
+                // For now, use the same endpoint but with different sorting
+                const response = await fetch(`/api/streams?platform=${filters.platform}&limit=${filters.limit}`);
+                
+                if (!response.ok) throw new Error('Failed to fetch most active streams');
+                
+                const data = await response.json();
+                let streams = data.streams || [];
+                
+                // Sort by viewers (most active)
+                streams.sort((a, b) => (b.viewers || 0) - (a.viewers || 0));
+                
+                currentData = streams;
+                
+                if (currentData.length === 0) {
+                    content.innerHTML = '<div class="no-data">No active streams found</div>';
+                    return;
                 }
-                return await response.json();
+                
+                renderStreamsTable(currentData);
             } catch (error) {
-                console.warn('Most active endpoint not available, returning empty data');
-                return [];
+                console.error('Error loading most active streams:', error);
+                content.innerHTML = '<div class="no-data">Error loading most active streams</div>';
             }
         }
-
-        async function fetchSearch(platform, query, limit) {
-            const response = await fetch(`${API_BASE}/search?platform=${platform}&q=${encodeURIComponent(query)}&limit=${limit}`);
-            if (!response.ok) throw new Error('Failed to search streams');
-            return await response.json();
+        
+        // Load search interface
+        function loadSearchInterface() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <p style="margin-bottom: 15px; color: #57606f;">
+                        Enter a search term in the filter bar above and click Refresh to search streams.
+                    </p>
+                    <p style="font-size: 14px; color: #a4b0be;">
+                        You can search by stream title, channel name, or category.
+                    </p>
+                </div>
+            `;
         }
-
-        async function fetchChannelHistory(platform, channelId, timeWindow) {
-            try {
-                const response = await fetch(`${API_BASE}/channel/${platform}/${encodeURIComponent(channelId)}/history?window=${timeWindow}`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        return { snapshots: [], total_snapshots: 0, avg_viewer_count: 0, peak_viewer_count: 0 };
-                    }
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return await response.json();
-            } catch (error) {
-                console.warn('Channel history endpoint not available');
-                return { snapshots: [], total_snapshots: 0, avg_viewer_count: 0, peak_viewer_count: 0 };
-            }
-        }
-
-        async function fetchCategories(platform, timeWindow, limit) {
-            try {
-                const response = await fetch(`${API_BASE}/stats/categories?platform=${platform}&window=${timeWindow}&limit=${limit}`);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        return [];
-                    }
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return await response.json();
-            } catch (error) {
-                console.warn('Categories endpoint not available');
-                return [];
-            }
-        }
-
-        // Display Functions
-        function displayStreamsTable(streams, title) {
-            if (!streams || streams.length === 0) {
-                document.getElementById('content').innerHTML = '<div class="no-data">No streams found</div>';
+        
+        // Perform search
+        async function performSearch() {
+            const filters = getCurrentFilters();
+            const query = filters.search.trim();
+            
+            if (!query) {
+                loadSearchInterface();
                 return;
             }
-
-            currentData = streams;
+            
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Searching streams...</div>';
+            
+            try {
+                const response = await fetch(`/api/search?platform=${filters.platform}&query=${encodeURIComponent(query)}&limit=${filters.limit}`);
+                
+                if (!response.ok) throw new Error('Search failed');
+                
+                const data = await response.json();
+                currentData = data.streams || [];
+                
+                if (currentData.length === 0) {
+                    content.innerHTML = `<div class="no-data">No streams found for "${query}"</div>`;
+                    return;
+                }
+                
+                renderStreamsTable(currentData);
+            } catch (error) {
+                console.error('Error searching streams:', error);
+                content.innerHTML = `<div class="no-data">Error searching for "${query}"</div>`;
+            }
+        }
+        
+        // Load channel history with chart
+        async function loadChannelHistory() {
+            const filters = getCurrentFilters();
+            const channel = filters.channel.trim();
+            
+            if (!channel) {
+                const content = document.getElementById('content');
+                content.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <p style="margin-bottom: 15px; color: #57606f;">
+                            Enter a channel ID or username in the filter bar above to view analytics.
+                        </p>
+                        <p style="font-size: 14px; color: #a4b0be;">
+                            Historical data includes viewer trends, follower growth, and streaming patterns.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading channel history...</div>';
+            
+            try {
+                const platform = filters.platform;
+                const timeWindow = filters.timeWindow;
+                
+                // Generate demo historical data
+                const historyData = generateDemoHistoryData(channel, timeWindow);
+                
+                renderChannelHistory(historyData, channel);
+            } catch (error) {
+                console.error('Error loading channel history:', error);
+                content.innerHTML = '<div class="no-data">Error loading channel history</div>';
+            }
+        }
+        
+        // Generate demo historical data
+        function generateDemoHistoryData(channel, timeWindow) {
+            const days = timeWindow === '24h' ? 1 : timeWindow === '7d' ? 7 : 30;
+            const hoursBack = days * 24;
+            const dataPoints = Math.min(hoursBack, 48); // Max 48 data points
+            
+            const data = [];
+            const now = new Date();
+            
+            for (let i = dataPoints; i >= 0; i--) {
+                const time = new Date(now.getTime() - (i * (hoursBack / dataPoints) * 60 * 60 * 1000));
+                const viewers = Math.floor(Math.random() * 1000) + 100;
+                const followers = Math.floor(Math.random() * 50) + 10;
+                
+                data.push({
+                    timestamp: time,
+                    viewers: viewers,
+                    followers: followers,
+                    isLive: Math.random() > 0.3 // 70% chance of being live
+                });
+            }
+            
+            return {
+                channel: channel,
+                timeWindow: timeWindow,
+                data: data,
+                summary: {
+                    totalStreams: data.filter(d => d.isLive).length,
+                    avgViewers: Math.floor(data.reduce((sum, d) => sum + d.viewers, 0) / data.length),
+                    maxViewers: Math.max(...data.map(d => d.viewers)),
+                    totalFollowers: data.reduce((sum, d) => sum + d.followers, 0)
+                }
+            };
+        }
+        
+        // Render channel history with chart
+        function renderChannelHistory(historyData, channel) {
+            const content = document.getElementById('content');
+            
+            content.innerHTML = `
+                <div class="history-summary">
+                    <div class="stat-card">
+                        <div class="stat-value">${historyData.summary.totalStreams}</div>
+                        <div class="stat-label">Total Streams</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${historyData.summary.avgViewers.toLocaleString()}</div>
+                        <div class="stat-label">Avg Viewers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${historyData.summary.maxViewers.toLocaleString()}</div>
+                        <div class="stat-label">Peak Viewers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${historyData.summary.totalFollowers.toLocaleString()}</div>
+                        <div class="stat-label">New Followers</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            `;
+            
+            // Create chart
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (historyChart) {
+                historyChart.destroy();
+            }
+            
+            historyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: historyData.data.map(d => {
+                        const date = new Date(d.timestamp);
+                        if (historyData.timeWindow === '24h') {
+                            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                        } else {
+                            return date.toLocaleDateString([], {month: 'short', day: 'numeric'});
+                        }
+                    }),
+                    datasets: [{
+                        label: 'Viewers',
+                        data: historyData.data.map(d => d.viewers),
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'New Followers',
+                        data: historyData.data.map(d => d.followers),
+                        borderColor: '#3742fa',
+                        backgroundColor: 'rgba(55, 66, 250, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${channel} - Analytics (${historyData.timeWindow.toUpperCase()})`
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Viewers'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'New Followers'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load categories
+        async function loadCategories() {
+            const content = document.getElementById('content');
+            content.innerHTML = '<div class="loading">Loading categories...</div>';
+            
+            try {
+                const filters = getCurrentFilters();
+                const response = await fetch(`/api/categories?platform=${filters.platform}&limit=${filters.limit}`);
+                
+                if (!response.ok) throw new Error('Failed to fetch categories');
+                
+                const data = await response.json();
+                const categories = data.categories || [];
+                
+                if (categories.length === 0) {
+                    content.innerHTML = '<div class="no-data">No categories found</div>';
+                    return;
+                }
+                
+                renderCategoriesTable(categories);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                content.innerHTML = '<div class="no-data">Error loading categories</div>';
+            }
+        }
+        
+        // Render streams table
+        function renderStreamsTable(streams) {
+            const content = document.getElementById('content');
             
             const html = `
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th class="sortable" onclick="sortTable('platform')">Platform</th>
-                                <th class="sortable" onclick="sortTable('display_name')">Streamer</th>
                                 <th class="sortable" onclick="sortTable('title')">Title</th>
-                                <th class="sortable" onclick="sortTable('game_name')">Game</th>
-                                <th class="sortable" onclick="sortTable('viewer_count')">Viewers</th>
-                                <th class="sortable" onclick="sortTable('follower_count')">Followers</th>
+                                <th class="sortable" onclick="sortTable('channel')">Channel</th>
+                                <th class="sortable" onclick="sortTable('platform')">Platform</th>
+                                <th class="sortable" onclick="sortTable('viewers')">Viewers</th>
+                                <th class="sortable" onclick="sortTable('followers')">Followers</th>
+                                <th class="sortable" onclick="sortTable('category')">Category</th>
                                 <th>Link</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${streams.map(stream => `
                                 <tr>
-                                    <td><span class="platform-badge platform-${stream.platform}">${stream.platform}</span></td>
-                                    <td>${stream.display_name || stream.username}</td>
-                                    <td>${stream.title || 'No title'}</td>
-                                    <td>${stream.game_name || 'No category'}</td>
-                                    <td class="viewer-count">${(stream.viewer_count || 0).toLocaleString()}</td>
-                                    <td class="follower-count">${(stream.follower_count || 0).toLocaleString()}</td>
-                                    <td><a href="${stream.stream_url || '#'}" target="_blank" class="stream-link">Watch</a></td>
+                                    <td>${stream.title || 'N/A'}</td>
+                                    <td>${stream.channel || 'N/A'}</td>
+                                    <td>
+                                        <span class="platform-badge platform-${stream.platform}">
+                                            ${stream.platform}
+                                        </span>
+                                    </td>
+                                    <td class="viewer-count">${(stream.viewers || 0).toLocaleString()}</td>
+                                    <td class="follower-count">${(stream.followers || 0).toLocaleString()}</td>
+                                    <td>${stream.category || 'N/A'}</td>
+                                    <td>
+                                        ${stream.url ? `<a href="${stream.url}" target="_blank" class="stream-link">Watch</a>` : 'N/A'}
+                                    </td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -612,125 +950,35 @@
                 </div>
             `;
             
-            document.getElementById('content').innerHTML = html;
+            content.innerHTML = html;
         }
-
-        function displayMostActiveTable(streamers, title) {
-            if (!streamers || streamers.length === 0) {
-                document.getElementById('content').innerHTML = '<div class="no-data">No data found</div>';
-                return;
-            }
-
-            currentData = streamers;
+        
+        // Render categories table
+        function renderCategoriesTable(categories) {
+            const content = document.getElementById('content');
             
             const html = `
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th class="sortable" onclick="sortTable('username')">Streamer</th>
-                                <th class="sortable" onclick="sortTable('stream_count')">Sessions</th>
-                                <th class="sortable" onclick="sortTable('total_snapshots')">Total Snapshots</th>
-                                <th class="sortable" onclick="sortTable('avg_viewers')">Avg Viewers</th>
-                                <th class="sortable" onclick="sortTable('peak_viewers')">Peak Viewers</th>
-                                <th class="sortable" onclick="sortTable('last_seen')">Last Seen</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${streamers.map(streamer => `
-                                <tr>
-                                    <td>${streamer.display_name || streamer.username}</td>
-                                    <td>${streamer.stream_count || 0}</td>
-                                    <td>${streamer.total_snapshots || 0}</td>
-                                    <td class="viewer-count">${Math.round(streamer.avg_viewers || 0).toLocaleString()}</td>
-                                    <td class="viewer-count">${(streamer.peak_viewers || 0).toLocaleString()}</td>
-                                    <td>${streamer.last_seen ? new Date(streamer.last_seen).toLocaleDateString() : 'Unknown'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            document.getElementById('content').innerHTML = html;
-        }
-
-        function displayChannelHistory(data, channelId) {
-            if (!data || !data.snapshots || data.snapshots.length === 0) {
-                document.getElementById('content').innerHTML = '<div class="no-data">No history found for this channel</div>';
-                return;
-            }
-
-            const { channel, snapshots, total_snapshots, avg_viewer_count, peak_viewer_count } = data;
-            
-            const html = `
-                <div style="padding: 20px;">
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <h3>${channel.display_name || channel.username}</h3>
-                        <p><strong>Platform:</strong> <span class="platform-badge platform-${channel.platform}">${channel.platform}</span></p>
-                        <p><strong>Total Snapshots:</strong> ${total_snapshots}</p>
-                        <p><strong>Average Viewers:</strong> ${Math.round(avg_viewer_count).toLocaleString()}</p>
-                        <p><strong>Peak Viewers:</strong> ${peak_viewer_count.toLocaleString()}</p>
-                    </div>
-                    
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Title</th>
-                                    <th>Game</th>
-                                    <th>Viewers</th>
-                                    <th>Started At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${snapshots.map(snapshot => `
-                                    <tr>
-                                        <td>${new Date(snapshot.collected_at).toLocaleDateString()}</td>
-                                        <td>${snapshot.title || 'No title'}</td>
-                                        <td>${snapshot.game_name || 'No category'}</td>
-                                        <td class="viewer-count">${(snapshot.viewer_count || 0).toLocaleString()}</td>
-                                        <td>${snapshot.started_at ? new Date(snapshot.started_at).toLocaleString() : 'Unknown'}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('content').innerHTML = html;
-        }
-
-        function displayCategoriesTable(categories, title) {
-            if (!categories || categories.length === 0) {
-                document.getElementById('content').innerHTML = '<div class="no-data">No categories found</div>';
-                return;
-            }
-
-            currentData = categories;
-            
-            const html = `
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th class="sortable" onclick="sortTable('game_name')">Game/Category</th>
-                                <th class="sortable" onclick="sortTable('total_streams')">Total Streams</th>
-                                <th class="sortable" onclick="sortTable('total_viewers')">Total Viewers</th>
-                                <th class="sortable" onclick="sortTable('avg_viewers')">Avg Viewers</th>
-                                <th class="sortable" onclick="sortTable('peak_viewers')">Peak Viewers</th>
+                                <th class="sortable" onclick="sortTable('name')">Category</th>
+                                <th class="sortable" onclick="sortTable('streams')">Active Streams</th>
+                                <th class="sortable" onclick="sortTable('viewers')">Total Viewers</th>
+                                <th class="sortable" onclick="sortTable('platform')">Platform</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${categories.map(category => `
                                 <tr>
-                                    <td>${category.game_name}</td>
-                                    <td>${category.total_streams.toLocaleString()}</td>
-                                    <td class="viewer-count">${category.total_viewers.toLocaleString()}</td>
-                                    <td class="viewer-count">${Math.round(category.avg_viewers).toLocaleString()}</td>
-                                    <td class="viewer-count">${category.peak_viewers.toLocaleString()}</td>
+                                    <td>${category.name || 'N/A'}</td>
+                                    <td>${(category.streams || 0).toLocaleString()}</td>
+                                    <td class="viewer-count">${(category.viewers || 0).toLocaleString()}</td>
+                                    <td>
+                                        <span class="platform-badge platform-${category.platform}">
+                                            ${category.platform}
+                                        </span>
+                                    </td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -738,10 +986,10 @@
                 </div>
             `;
             
-            document.getElementById('content').innerHTML = html;
+            content.innerHTML = html;
         }
-
-        // Table sorting
+        
+        // Sort table
         function sortTable(column) {
             if (currentSort.column === column) {
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
@@ -750,76 +998,113 @@
                 currentSort.direction = 'asc';
             }
             
+            currentData.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+                
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+                
+                if (currentSort.direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+            
+            if (currentSection === 'categories') {
+                renderCategoriesTable(currentData);
+            } else {
+                renderStreamsTable(currentData);
+            }
+            
             // Update sort indicators
             document.querySelectorAll('.data-table th').forEach(th => {
                 th.classList.remove('sort-asc', 'sort-desc');
             });
             
-            const currentTh = event.target;
-            currentTh.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            const targetTh = Array.from(document.querySelectorAll('.data-table th')).find(th => 
+                th.textContent.toLowerCase().includes(column.toLowerCase())
+            );
             
-            // Sort data
-            currentData.sort((a, b) => {
-                let aVal = a[column];
-                let bVal = b[column];
-                
-                // Handle different data types
-                if (typeof aVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                    bVal = bVal ? bVal.toLowerCase() : '';
-                }
-                
-                if (typeof aVal === 'number') {
-                    return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
-                } else {
-                    return currentSort.direction === 'asc' 
-                        ? aVal.localeCompare(bVal)
-                        : bVal.localeCompare(aVal);
-                }
-            });
-            
-            // Re-render with sorted data
-            if (currentSection === 'live-streams' || currentSection === 'search') {
-                displayStreamsTable(currentData, '');
-            } else if (currentSection === 'most-active') {
-                displayMostActiveTable(currentData, '');
-            } else if (currentSection === 'categories') {
-                displayCategoriesTable(currentData, '');
+            if (targetTh) {
+                targetTh.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
             }
         }
-
-        async function exportData() {
+        
+        // Export data as CSV
+        function exportData() {
+            if (currentData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            const headers = Object.keys(currentData[0]).join(',');
+            const rows = currentData.map(item => 
+                Object.values(item).map(val => 
+                    typeof val === 'string' && val.includes(',') ? `"${val}"` : val
+                ).join(',')
+            );
+            
+            const csv = [headers, ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentSection}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Collect data
+        async function collectData() {
             try {
-                const platform = document.getElementById('platformFilter').value;
-                const timeWindow = document.getElementById('timeWindow').value || '24h';
-                
-                const response = await fetch(`${API_BASE}/export/csv?platform=${platform}&window=${timeWindow}`);
-                if (!response.ok) throw new Error('Failed to export data');
-                
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `streaming_data_${platform}_${timeWindow}.csv`;
-                a.click();
-                window.URL.revokeObjectURL(url);
+                const response = await fetch('/api/collect-all', { method: 'POST' });
+                if (response.ok) {
+                    alert('Data collection started in background');
+                } else {
+                    alert('Failed to start data collection');
+                }
             } catch (error) {
-                alert('Error exporting data: ' + error.message);
+                console.error('Error starting data collection:', error);
+                alert('Error starting data collection');
             }
         }
-
-        // Utility functions
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+        
+        // Event listeners for filters
+        document.getElementById('platformFilter').addEventListener('change', refreshData);
+        document.getElementById('limitFilter').addEventListener('change', refreshData);
+        document.getElementById('sortFilter').addEventListener('change', refreshData);
+        
+        // Search on Enter key
+        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Channel input on Enter key
+        document.getElementById('channelInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadChannelHistory();
+            }
+        });
+        
+        // Time window change
+        document.getElementById('timeWindow').addEventListener('change', function() {
+            if (currentSection === 'channel-history') {
+                loadChannelHistory();
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSection('live-streams');
+        });
     </script>
 </body>
 </html>
