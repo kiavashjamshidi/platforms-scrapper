@@ -36,8 +36,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routes (without prefix since routes are at root level)
-app.include_router(api_router, tags=["streams"])
+# Include API routes with /api prefix
+app.include_router(api_router, prefix="/api", tags=["streams"])
 
 # Mount static files
 static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
