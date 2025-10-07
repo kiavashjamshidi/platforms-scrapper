@@ -281,24 +281,35 @@ class StreamCollector:
                                     channel_info = await client.get_channel_info(slug)
                                     follower_count = channel_info.get("followers_count", channel_info.get("follower_count", channel_info.get("followersCount", 0)))
                                     logger.debug(f"Fetched follower count for {slug}: {follower_count}")
+                                    
+                                    # Skip channels with 0 followers as they might be inactive or have issues
+                                    if follower_count == 0:
+                                        logger.info(f"Skipping channel {slug} with 0 followers - likely inactive")
+                                        continue
+                                        
                                 except Exception as e:
                                     logger.warning(f"Could not fetch channel info for {slug}: {e}")
-                                    follower_count = 0
+                                    # Skip streams where we can't get follower count
+                                    continue
 
                         logger.debug(f"Processing Kick stream - slug: {slug}, username: {username}, followers: {follower_count}")
 
-                        # Get or create channel
-                        channel = self.get_or_create_channel(
-                            platform="kick",
-                            channel_id=stream_data["channel_id"],
-                            username=stream_data["username"],
-                            display_name=stream_data["display_name"],
-                            follower_count=follower_count  # Use fetched follower count
-                        )
+                        # Only process streams with valid follower counts
+                        if follower_count > 0:
+                            # Get or create channel
+                            channel = self.get_or_create_channel(
+                                platform="kick",
+                                channel_id=stream_data["channel_id"],
+                                username=stream_data["username"],
+                                display_name=stream_data["display_name"],
+                                follower_count=follower_count  # Use fetched follower count
+                            )
 
-                        # Create snapshot
-                        self.create_snapshot(channel, stream_data)
-                        collected_count += 1
+                            # Create snapshot
+                            self.create_snapshot(channel, stream_data)
+                            collected_count += 1
+                        else:
+                            logger.info(f"Skipping stream {slug} due to invalid follower count")
 
                     except Exception as e:
                         logger.error(f"Error processing Kick stream {stream.get('slug', 'unknown')}: {e}")

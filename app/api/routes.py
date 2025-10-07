@@ -54,19 +54,25 @@ async def get_top_live_streams(
     - 'viewers': Sort by current viewer count (default)
     - 'followers': Sort by channel follower count
     """
-    # Subquery to get the latest snapshot ID for each channel
+    # Only show streams from the last 6 hours to ensure they're likely still live
+    recent_time = datetime.utcnow() - timedelta(hours=6)
+    
+    # Subquery to get the latest snapshot ID for each channel (only recent ones)
     subquery = (
         db.query(
             LiveSnapshot.channel_id,
             func.max(LiveSnapshot.collected_at).label("max_collected")
         )
         .join(Channel)
-        .filter(Channel.platform == platform)
+        .filter(
+            Channel.platform == platform,
+            LiveSnapshot.collected_at >= recent_time
+        )
         .group_by(LiveSnapshot.channel_id)
         .subquery()
     )
     
-    # Get the latest snapshots with channel info
+    # Get the latest snapshots with channel info, exclude channels with 0 followers for Kick
     query = (
         db.query(LiveSnapshot, Channel)
         .join(Channel)
@@ -77,8 +83,15 @@ async def get_top_live_streams(
                 LiveSnapshot.collected_at == subquery.c.max_collected
             )
         )
-        .filter(Channel.platform == platform)
+        .filter(
+            Channel.platform == platform,
+            LiveSnapshot.collected_at >= recent_time
+        )
     )
+    
+    # For Kick, filter out channels with 0 followers as they're likely inactive or have data issues
+    if platform == "kick":
+        query = query.filter(Channel.follower_count > 0)
     
     # Apply sorting based on sort_by parameter
     if sort_by == "followers":
@@ -270,17 +283,25 @@ async def get_channel_history(
 ):
     """
     Get historical data for a specific channel.
+    channel_id can be either the numerical channel ID or the username.
     """
     try:
         start_time = parse_time_window(window)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-    # Get channel
+    # Try to find channel by channel_id first, then by username if not found
     channel = db.query(Channel).filter(
         Channel.platform == platform,
         Channel.channel_id == channel_id
     ).first()
+    
+    if not channel:
+        # If not found by channel_id, try by username
+        channel = db.query(Channel).filter(
+            Channel.platform == platform,
+            Channel.username == channel_id
+        ).first()
     
     if not channel:
         raise HTTPException(status_code=404, detail="Channel not found")

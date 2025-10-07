@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # Kick API
     kick_client_id: Optional[str] = None
     kick_client_secret: Optional[str] = None
-    
+
     # API Settings
     api_host: str = "0.0.0.0"
     api_port: int = 8000
