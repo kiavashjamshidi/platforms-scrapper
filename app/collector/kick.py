@@ -5,11 +5,10 @@ from typing import Optional, List, Dict, Any
 import httpx
 from loguru import logger
 from app.config import settings
-from kickapi import KickAPI
 
 
 class KickClient:
-    """Client for interacting with Kick's API."""
+    """Client for interacting with Kick's official API."""
 
     OAUTH_URL = "https://id.kick.com/oauth/token"
     BASE_URL = "https://api.kick.com/public/v1"
@@ -19,14 +18,11 @@ class KickClient:
         self.client_secret = client_secret
         self._http_client: Optional[httpx.AsyncClient] = None
         self._access_token: Optional[str] = None
-        self._kick_api: Optional[KickAPI] = None
 
     async def __aenter__(self):
         """Async context manager entry."""
         self._http_client = httpx.AsyncClient(timeout=30.0)
         await self._get_access_token()
-        # Initialize KickAPI (it's synchronous but lightweight)
-        self._kick_api = KickAPI()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -115,7 +111,7 @@ class KickClient:
 
     async def get_channel_info(self, channel_slug: str) -> Dict[str, Any]:
         """
-        Get channel information from Kick using the kickapi library.
+        Get channel information from Kick using the official API.
 
         Args:
             channel_slug: The slug of the channel to fetch information for.
@@ -124,22 +120,10 @@ class KickClient:
             Channel information object with followers count.
         """
         try:
-            # Run the synchronous kickapi call in a thread pool to avoid blocking
-            loop = asyncio.get_event_loop()
-            channel = await loop.run_in_executor(None, self._kick_api.channel, channel_slug)
+            endpoint = f"channels/{channel_slug}"
+            result = await self._make_request(endpoint)
             
-            # Convert to dict format
-            result = {
-                "id": channel.id,
-                "slug": channel.username,
-                "username": channel.username,
-                "followers_count": channel.followers,
-                "follower_count": channel.followers,
-                "bio": channel.bio,
-                "avatar": channel.avatar,
-            }
-            
-            logger.debug(f"Channel info for {channel_slug}: followers={channel.followers}")
+            logger.debug(f"Channel info for {channel_slug}: followers={result.get('followers_count', 0)}")
             return result
             
         except Exception as e:

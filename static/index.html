@@ -716,7 +716,8 @@
                 currentData = data.streams || [];
                 
                 if (currentData.length === 0) {
-                    content.innerHTML = '<div class="no-data">No live streams found</div>';
+                    const message = data.message || 'No live streams found';
+                    content.innerHTML = `<div class="no-data">${message}</div>`;
                     return;
                 }
                 

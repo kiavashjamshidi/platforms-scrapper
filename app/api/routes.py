@@ -277,21 +277,11 @@ async def search_streams(
         
     except Exception as e:
         print(f"Search error: {e}")
-        # Fallback: return demo search results related to the query
-        demo_streams = []
-        for i in range(min(limit, 8)):
-            demo_streams.append({
-                "title": f"🔍 {q} Stream #{i+1} - Live Now!",
-                "channel": f"streamer_{q.lower()}_{i+1}",
-                "platform": platform,
-                "viewers": max(100, 3000 - (i * 200)),
-                "followers": max(1000, 35000 - (i * 2000)),
-                "category": "Gaming" if i % 3 == 0 else "Just Chatting" if i % 3 == 1 else "Music",
-                "language": "English",
-                "started_at": "2024-12-19T12:00:00",
-                "url": f"https://{platform}.com/streamer_{q.lower()}_{i+1}"
-            })
-        return {"streams": demo_streams}
+        # Return empty results instead of fake demo data
+        return {
+            "streams": [],
+            "message": f"No search results found for '{q}' on {platform}. The database may be empty or still collecting data."
+        }
 
 
 @router.get("/channel/{platform}/{channel_id}/history", response_model=ChannelHistoryResponse)
@@ -524,21 +514,11 @@ async def get_streams(
         return {"streams": streams}
     except Exception as e:
         print(f"Error in get_streams: {e}")
-        # Return demo data if database query fails
-        demo_streams = []
-        for i in range(min(limit, 20)):
-            demo_streams.append({
-                "title": f"Demo Stream {i+1} - {platform.title()} Gaming",
-                "channel": f"demo_streamer_{i+1}",
-                "platform": platform,
-                "viewers": max(100, 5000 - (i * 200)),
-                "followers": max(1000, 50000 - (i * 1500)),
-                "category": "Gaming" if i % 3 == 0 else "Just Chatting" if i % 3 == 1 else "Music",
-                "language": "English",
-                "started_at": "2024-12-19T12:00:00",
-                "url": f"https://{platform}.com/demo_streamer_{i+1}"
-            })
-        return {"streams": demo_streams}
+        # Return empty result with a message instead of fake demo data
+        return {
+            "streams": [],
+            "message": f"No live streams available for {platform}. Data collection may be in progress or the platform API may be unavailable."
+        }
 
 
 @router.get("/categories")
@@ -567,30 +547,11 @@ async def get_categories(
         
         return {"categories": result}
     except Exception as e:
-        # Return platform-specific demo data if query fails
-        if platform == "kick":
-            demo_categories = [
-                {"name": "Just Chatting", "streams": 1850, "viewers": 145000, "platform": platform},
-                {"name": "Slots", "streams": 950, "viewers": 89000, "platform": platform},
-                {"name": "Gaming", "streams": 1200, "viewers": 78000, "platform": platform},
-                {"name": "Music", "streams": 650, "viewers": 42000, "platform": platform},
-                {"name": "Hot Tubs", "streams": 280, "viewers": 35000, "platform": platform},
-                {"name": "IRL", "streams": 420, "viewers": 28000, "platform": platform},
-                {"name": "Art", "streams": 380, "viewers": 22000, "platform": platform},
-                {"name": "Sports", "streams": 310, "viewers": 18000, "platform": platform}
-            ]
-        else:  # twitch
-            demo_categories = [
-                {"name": "Just Chatting", "streams": 2450, "viewers": 185000, "platform": platform},
-                {"name": "League of Legends", "streams": 1680, "viewers": 125000, "platform": platform},
-                {"name": "Fortnite", "streams": 1320, "viewers": 98000, "platform": platform},
-                {"name": "World of Warcraft", "streams": 890, "viewers": 67000, "platform": platform},
-                {"name": "VALORANT", "streams": 1150, "viewers": 58000, "platform": platform},
-                {"name": "Call of Duty: Warzone", "streams": 720, "viewers": 45000, "platform": platform},
-                {"name": "Apex Legends", "streams": 650, "viewers": 38000, "platform": platform},
-                {"name": "Minecraft", "streams": 1580, "viewers": 35000, "platform": platform}
-            ]
-        return {"categories": demo_categories[:limit]}
+        # Return empty result instead of fake demo data
+        return {
+            "categories": [],
+            "message": f"No category data available for {platform}. Data collection may be in progress."
+        }
 
 
 @router.get("/channel-history")

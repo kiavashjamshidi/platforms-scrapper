@@ -17,6 +17,15 @@ class Settings(BaseSettings):
     # Kick API
     kick_client_id: Optional[str] = None
     kick_client_secret: Optional[str] = None
+    
+    # Convenience properties for uppercase access
+    @property
+    def KICK_CLIENT_ID(self) -> Optional[str]:
+        return self.kick_client_id
+    
+    @property
+    def KICK_CLIENT_SECRET(self) -> Optional[str]:
+        return self.kick_client_secret
 
     # API Settings
     api_host: str = "0.0.0.0"

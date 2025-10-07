@@ -11,8 +11,7 @@ from app.config import settings
 from app.database import SessionLocal, init_db
 from app.models import Channel, LiveSnapshot
 from app.collector.twitch import TwitchClient
-from app.collector.kick import KickClient  # Import KickClient
-from kickapi import KickAPI
+from app.collector.kick import KickClient  # Import official KickClient
 
 
 # Configure logger
@@ -35,7 +34,6 @@ class StreamCollector:
     
     def __init__(self):
         self.db: Session = SessionLocal()
-        self._kick_api = None  # Initialize KickAPI instance
     
     def __del__(self):
         """Cleanup database session."""
@@ -112,15 +110,80 @@ class StreamCollector:
     
     async def collect_twitch_streams(self):
         """
-        Collect realistic Twitch streams using varied streamer data.
+        Collect real live streams from Twitch using official API.
         """
         logger.info("Starting Twitch stream collection...")
         collected_count = 0
 
-        try:
-            # Get realistic Twitch streams
+        # Check if we have Twitch API credentials
+        if not settings.twitch_client_id or not settings.twitch_client_secret:
+            logger.warning("Twitch API credentials not found, using demo data")
+            logger.warning(f"twitch_client_id present: {bool(settings.twitch_client_id)}")
+            logger.warning(f"twitch_client_secret present: {bool(settings.twitch_client_secret)}")
             twitch_streams = self._get_realistic_twitch_streams()
-            
+        else:
+            logger.info(f"Twitch credentials found - Client ID: {settings.twitch_client_id[:10]}...")
+            try:
+                # Use the official Twitch API client
+                logger.info("Initializing TwitchClient...")
+                async with TwitchClient() as client:
+                    logger.info("TwitchClient initialized, fetching streams...")
+                    
+                    # Get top live streams sorted by viewer count
+                    streams_response = await client.get_streams(first=50)
+                    streams_data = streams_response.get("data", [])
+                    
+                    logger.info(f"Received {len(streams_data)} streams from Twitch API")
+                    
+                    if not streams_data:
+                        logger.warning("No live streams returned from Twitch API")
+                        logger.warning("Using demo data as fallback")
+                        twitch_streams = self._get_realistic_twitch_streams()
+                    else:
+                        logger.info(f"Found {len(streams_data)} live streams from Twitch API")
+                        logger.info(f"First stream example: {streams_data[0].get('user_login')} - {streams_data[0].get('viewer_count')} viewers")
+                        
+                        # Get user IDs to fetch follower counts
+                        user_ids = [stream["user_id"] for stream in streams_data]
+                        logger.info(f"Fetching user info for {len(user_ids)} users...")
+                        
+                        users_response = await client.get_users(user_ids=user_ids)
+                        users_data = {user["id"]: user for user in users_response.get("data", [])}
+                        logger.info(f"Received info for {len(users_data)} users")
+                        
+                        twitch_streams = []
+                        for stream in streams_data:
+                            user_id = stream["user_id"]
+                            user_data = users_data.get(user_id, {})
+                            
+                            twitch_streams.append({
+                                "channel_id": user_id,
+                                "username": stream["user_login"],
+                                "display_name": stream["user_name"],
+                                "title": stream["title"],
+                                "game_name": stream["game_name"],
+                                "game_id": stream["game_id"],
+                                "viewer_count": stream["viewer_count"],
+                                "language": stream["language"],
+                                "started_at": datetime.fromisoformat(stream["started_at"].replace("Z", "+00:00")),
+                                "thumbnail_url": stream["thumbnail_url"],
+                                "stream_url": f"https://twitch.tv/{stream['user_login']}",
+                                "follower_count": user_data.get("view_count", 0)  # Twitch API doesn't provide follower count easily
+                            })
+                        
+                        logger.info(f"Successfully parsed {len(twitch_streams)} Twitch streams")
+                    
+            except Exception as e:
+                logger.error(f"Error fetching real Twitch streams from official API: {e}")
+                logger.error(f"Error type: {type(e).__name__}")
+                logger.error(f"Error details: {str(e)}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                logger.warning("Falling back to demo data")
+                twitch_streams = self._get_realistic_twitch_streams()
+        
+        try:
+            logger.info(f"Saving {len(twitch_streams)} Twitch streams to database...")
             for stream_data in twitch_streams:
                 # Get or create channel
                 channel = self.get_or_create_channel(
@@ -134,12 +197,16 @@ class StreamCollector:
                 # Create snapshot
                 self.create_snapshot(channel, stream_data)
                 collected_count += 1
-                logger.debug(f"Collected Twitch stream for {stream_data['username']}")
+                if collected_count <= 3:  # Log first 3 for debugging
+                    logger.debug(f"Saved: {stream_data['username']} - {stream_data['viewer_count']} viewers")
                 
             logger.info(f"Successfully collected {collected_count} Twitch stream snapshots")
             
         except Exception as e:
-            logger.error(f"Error collecting Twitch data: {e}")
+            logger.error(f"Error saving Twitch data to database: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise
 
     def _get_realistic_twitch_streams(self) -> List[Dict[str, Any]]:
@@ -326,12 +393,17 @@ class StreamCollector:
 
         try:
             # Try to get real live streams first
+            logger.info("Attempting to fetch Kick streams from official API...")
             real_streams = await self._fetch_real_kick_streams()
             
             if not real_streams:
-                # Fallback to demo data if API fails
-                logger.warning("Failed to fetch real streams, using demo data...")
-                real_streams = self._get_demo_kick_streams()
+                # Log that we couldn't fetch real streams
+                logger.warning("Failed to fetch real Kick streams - API may be unavailable or blocked")
+                # Don't use demo data for Kick since it's misleading
+                logger.info("Skipping Kick collection - no real streams available")
+                return
+            
+            logger.info(f"Processing {len(real_streams)} Kick streams...")
             
             for stream_data in real_streams:
                 # Get or create channel
@@ -346,64 +418,100 @@ class StreamCollector:
                 # Create snapshot
                 self.create_snapshot(channel, stream_data)
                 collected_count += 1
-                logger.debug(f"Collected stream for {stream_data['username']}")
+                if collected_count <= 3:  # Log first 3 for debugging
+                    logger.debug(f"Saved Kick stream: {stream_data['username']}")
                 
             logger.info(f"Successfully collected {collected_count} Kick stream snapshots")
             
         except Exception as e:
             logger.error(f"Error collecting Kick data: {e}")
-            raise
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            # Don't raise - allow other platform collection to continue
 
     async def _fetch_real_kick_streams(self) -> List[Dict[str, Any]]:
         """
-        Fetch real live streams from Kick using KickAPI.
+        Fetch real live streams from Kick using official API.
         """
+        from app.collector.kick import KickClient
+        
+        # Check if we have Kick API credentials
+        if not settings.KICK_CLIENT_ID or not settings.KICK_CLIENT_SECRET:
+            logger.warning("Kick API credentials not found in settings")
+            logger.warning(f"KICK_CLIENT_ID present: {bool(settings.KICK_CLIENT_ID)}")
+            logger.warning(f"KICK_CLIENT_SECRET present: {bool(settings.KICK_CLIENT_SECRET)}")
+            return []
+        
+        logger.info(f"Kick credentials found - Client ID: {settings.KICK_CLIENT_ID[:10]}...")
+        
         try:
-            # Initialize KickAPI in a thread to avoid blocking
-            import asyncio
-            loop = asyncio.get_event_loop()
-            
-            def get_kick_streams():
-                try:
-                    kick_api = KickAPI()
-                    # Get featured streams (these are usually live and popular)
-                    featured = kick_api.featured()
-                    streams = []
-                    
-                    for stream in featured:
-                        if hasattr(stream, 'livestream') and stream.livestream:
-                            streams.append({
-                                "channel_id": str(stream.id),
-                                "username": stream.username,
-                                "display_name": stream.user.username if hasattr(stream, 'user') else stream.username,
-                                "title": stream.livestream.session_title if stream.livestream.session_title else f"Live on {stream.username}",
-                                "game_name": stream.livestream.category.name if hasattr(stream.livestream, 'category') and stream.livestream.category else "Just Chatting",
-                                "game_id": str(stream.livestream.category.id) if hasattr(stream.livestream, 'category') and stream.livestream.category else "1",
-                                "viewer_count": stream.livestream.viewer_count if hasattr(stream.livestream, 'viewer_count') else 0,
-                                "language": "en",
-                                "started_at": datetime.utcnow(),
-                                "thumbnail_url": stream.livestream.thumbnail if hasattr(stream.livestream, 'thumbnail') else None,
-                                "stream_url": f"https://kick.com/{stream.username}",
-                                "follower_count": stream.followers_count if hasattr(stream, 'followers_count') else 1000
-                            })
-                    
-                    return streams[:20]  # Limit to 20 streams
-                except Exception as e:
-                    logger.error(f"Error in KickAPI call: {e}")
+            # Use the official Kick API client
+            logger.info("Initializing KickClient...")
+            async with KickClient(
+                client_id=settings.KICK_CLIENT_ID,
+                client_secret=settings.KICK_CLIENT_SECRET
+            ) as client:
+                logger.info("KickClient initialized successfully")
+                logger.info("Fetching live streams from official Kick API...")
+                
+                # Get live streams from the official API
+                livestreams = await client.get_live_streams(limit=50)
+                
+                logger.info(f"Received response from Kick API: {len(livestreams) if livestreams else 0} streams")
+                
+                if not livestreams:
+                    logger.warning("No live streams returned from Kick API")
                     return []
-            
-            # Run the synchronous KickAPI call in a thread pool
-            real_streams = await loop.run_in_executor(None, get_kick_streams)
-            
-            if real_streams:
-                logger.info(f"Successfully fetched {len(real_streams)} real streams from Kick")
-                return real_streams
-            else:
-                logger.warning("No real streams found from Kick API")
-                return []
+                
+                logger.info(f"Found {len(livestreams)} live streams from Kick API")
+                logger.info(f"First stream example: {livestreams[0].get('channel', {}).get('slug', 'unknown')}")
+                
+                streams = []
+                for i, stream_data in enumerate(livestreams):
+                    try:
+                        # Parse the stream data from official API response
+                        channel_slug = stream_data.get("channel", {}).get("slug") or stream_data.get("slug")
+                        
+                        if not channel_slug:
+                            logger.warning(f"Stream {i} missing channel slug, skipping")
+                            continue
+                        
+                        # Get channel info for follower count
+                        logger.debug(f"Fetching channel info for {channel_slug}...")
+                        channel_info = await client.get_channel_info(channel_slug)
+                        
+                        streams.append({
+                            "channel_id": str(stream_data.get("channel", {}).get("id", stream_data.get("id"))),
+                            "username": channel_slug,
+                            "display_name": stream_data.get("channel", {}).get("username", channel_slug),
+                            "title": stream_data.get("session_title", f"Live on {channel_slug}"),
+                            "game_name": stream_data.get("categories", [{}])[0].get("name", "Just Chatting") if stream_data.get("categories") else "Just Chatting",
+                            "game_id": str(stream_data.get("categories", [{}])[0].get("id", "1")) if stream_data.get("categories") else "1",
+                            "viewer_count": stream_data.get("viewer_count", 0),
+                            "language": stream_data.get("language", "en"),
+                            "started_at": datetime.fromisoformat(stream_data["created_at"].replace("Z", "+00:00")) if stream_data.get("created_at") else datetime.utcnow(),
+                            "thumbnail_url": stream_data.get("thumbnail", {}).get("url") if stream_data.get("thumbnail") else None,
+                            "stream_url": f"https://kick.com/{channel_slug}",
+                            "follower_count": channel_info.get("follower_count", 0)
+                        })
+                        
+                    except Exception as e:
+                        logger.warning(f"Error parsing stream {i} data: {e}")
+                        continue
+                
+                logger.info(f"Successfully parsed {len(streams)} Kick streams")
+                return streams
                 
         except Exception as e:
-            logger.error(f"Error fetching real Kick streams: {e}")
+            logger.error(f"Error fetching real Kick streams from official API: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return []
+                
+        except Exception as e:
+            logger.error(f"Error fetching real Kick streams from official API: {e}")
             return []
 
     def _get_demo_kick_streams(self) -> List[Dict[str, Any]]:
