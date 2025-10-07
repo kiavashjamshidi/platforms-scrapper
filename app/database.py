@@ -8,7 +8,7 @@ from app.config import settings
 # Use SQLite for free deployment, PostgreSQL for local development
 if os.getenv("ENVIRONMENT") == "production":
     # SQLite for production deployment (completely free)
-    database_url = "sqlite:////app/data/streaming_data.db"
+    database_url = "sqlite:///./streaming_data.db"
     engine = create_engine(
         database_url,
         connect_args={"check_same_thread": False},

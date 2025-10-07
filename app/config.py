@@ -10,9 +10,9 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql://streamdata:streamdata_password@localhost:5432/streaming_platform"
     
-    # Twitch API
-    twitch_client_id: str
-    twitch_client_secret: str
+    # Twitch API (optional - not needed for Kick-only deployment)
+    twitch_client_id: Optional[str] = None
+    twitch_client_secret: Optional[str] = None
     
     # Kick API
     kick_client_id: Optional[str] = None
