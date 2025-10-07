@@ -1,40 +1,129 @@
-# Live Streaming Data Collection Platform
+# Live Streaming Data Collection Dashboard
 
-A backend service for collecting and analyzing live streaming data from platforms like Twitch (Kick and YouTube support coming soon).
+A local dashboard for collecting and analyzing live streaming data from Twitch, Kick, and YouTube.
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Python 3.11+
+- PostgreSQL 14+
+
+**Install PostgreSQL (macOS):**
+```bash
+brew install postgresql@14
+brew services start postgresql@14
+```
+
+### 2. Setup Database
+
+```bash
+# Create user
+psql postgres -c "CREATE USER streamdata WITH PASSWORD 'streamdata_password';"
+
+# Create database
+psql postgres -c "CREATE DATABASE streaming_platform OWNER streamdata;"
+```
+
+### 3. Run the Application
+
+```bash
+./run-local.sh
+```
+
+This will:
+- Check PostgreSQL is running
+- Create virtual environment if needed
+- Install dependencies
+- Start the application on http://localhost:8000
+
+## Access Points
+
+- **Dashboard**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/api/health
 
 ## Features
 
-- Collects live stream data every 5 minutes
-- Stores data in PostgreSQL
-- Provides REST API access via FastAPI
-- Fully containerized with Docker Compose
+- ✅ Real-time data collection from Twitch, Kick, and YouTube
+- ✅ Automatic collection every 2 minutes
+- ✅ Search and filter streams
+- ✅ Sort by viewers, followers, etc.
+- ✅ View stream details (language, duration, start time)
 
-## Setup
+## Manual Collection
 
-1. **Environment Configuration**:
-   Create a `.env` file with the following:
+Trigger data collection manually:
 
-   ```env
-   POSTGRES_USER=streamdata
-   POSTGRES_PASSWORD=your_secure_password
-   POSTGRES_DB=streaming_platform
-   TWITCH_CLIENT_ID=your_client_id_here
-   TWITCH_CLIENT_SECRET=your_client_secret_here
-   ```
+```bash
+curl -X POST "http://localhost:8000/api/collect-all"
+```
 
-2. **Run with Docker Compose**:
+## Configuration
 
-   ```bash
-   docker-compose up --build
-   ```
+Edit `.env` file to configure:
+- Database connection
+- API credentials (Twitch, Kick, YouTube)
+- Collection interval
 
-3. **Access the Application**:
-   - API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
-   - Health Check: [http://localhost:8000/health](http://localhost:8000/health)
+## Troubleshooting
 
-## API Example
+### PostgreSQL not running
+```bash
+brew services start postgresql@14
+```
 
-- **Get Top Live Streams**:
-  ```bash
-  curl "http://localhost:8000/live/top?platform=twitch&limit=10"
-  ```
+### Database connection error
+```bash
+# Check PostgreSQL status
+pg_isready -h localhost -p 5432
+
+# Recreate database
+dropdb streaming_platform
+createdb streaming_platform -O streamdata
+```
+
+### Port 8000 already in use
+```bash
+# Find process using port 8000
+lsof -ti:8000 | xargs kill -9
+
+# Or change port in .env
+API_PORT=8001
+```
+
+## Development
+
+```bash
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run with auto-reload
+uvicorn app.main:app --reload
+
+# Run tests
+pytest tests/
+```
+
+## Project Structure
+
+```
+├── app/
+│   ├── main.py              # FastAPI application
+│   ├── config.py            # Configuration
+│   ├── database.py          # Database connection
+│   ├── models.py            # SQLAlchemy models
+│   ├── api/
+│   │   └── routes.py        # API endpoints
+│   └── collector/
+│       ├── scheduler.py     # Data collection scheduler
+│       ├── twitch.py        # Twitch API client
+│       ├── kick.py          # Kick API client
+│       └── youtube.py       # YouTube API client
+├── static/
+│   └── index.html           # Dashboard UI
+└── .env                     # Environment variables
+```
