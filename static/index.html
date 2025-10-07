@@ -173,6 +173,61 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
+            position: relative;
+        }
+        
+        .search-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid #3742fa;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(55, 66, 250, 0.2);
+            z-index: 100;
+            min-width: 280px;
+            display: none;
+        }
+        
+        .search-container.visible {
+            display: block;
+        }
+        
+        .search-container h4 {
+            margin: 0 0 10px 0;
+            color: #3742fa;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .search-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .search-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .search-input-group button {
+            padding: 8px 15px;
+            background: #3742fa;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .search-input-group button:hover {
+            background: #5352ed;
         }
         
         .section-header {
@@ -357,6 +412,15 @@
             .filter-item label {
                 min-width: 80px;
             }
+            
+            .search-container {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px;
+                min-width: auto;
+                width: calc(100% - 20px);
+            }
         }
     </style>
 </head>
@@ -393,11 +457,7 @@
                 </select>
             </div>
             
-            <!-- Search Filter - For search section -->
-            <div class="filter-item" id="searchFilterItem" style="display: none;">
-                <label>Search Query</label>
-                <input type="text" id="searchQuery" placeholder="Enter search term...">
-            </div>
+
             
             <!-- Channel Filter - For channel history -->
             <div class="filter-item" id="channelFilterItem" style="display: none;">
@@ -463,6 +523,15 @@
             </div>
             
             <div class="content-section">
+                <!-- Right-side Search Container -->
+                <div class="search-container" id="rightSearchContainer">
+                    <h4>🔍 Search Streams</h4>
+                    <div class="search-input-group">
+                        <input type="text" id="searchQuery" placeholder="Enter search term...">
+                        <button onclick="performSearch()">Search</button>
+                    </div>
+                </div>
+                
                 <div class="section-header">
                     <h2 class="section-title" id="sectionTitle">Live Streams</h2>
                 </div>
@@ -479,13 +548,27 @@
         let currentSort = { column: '', direction: 'asc' };
         let historyChart = null;
         
+        // Format duration from milliseconds to human readable format
+        function formatDuration(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes % 60}m`;
+            } else if (minutes > 0) {
+                return `${minutes}m`;
+            } else {
+                return `${seconds}s`;
+            }
+        }
+        
         // Show/hide filter bar based on section
         function showFilterBar(filtersToShow = []) {
             const topFilters = document.getElementById('topFilters');
             const allFilterItems = [
                 'limitFilterItem',
                 'sortFilterItem', 
-                'searchFilterItem',
                 'channelFilterItem',
                 'timeWindowFilterItem'
             ];
@@ -510,6 +593,17 @@
             document.getElementById('topFilters').classList.remove('show');
         }
         
+        function showSearchContainer(show = false) {
+            const searchContainer = document.getElementById('rightSearchContainer');
+            if (searchContainer) {
+                if (show) {
+                    searchContainer.classList.add('visible');
+                } else {
+                    searchContainer.classList.remove('visible');
+                }
+            }
+        }
+        
         // Load different sections with appropriate filters
         function loadSection(section) {
             currentSection = section;
@@ -524,6 +618,7 @@
             switch(section) {
                 case 'live-streams':
                     showFilterBar(['limitFilterItem', 'sortFilterItem']);
+                    showSearchContainer(false);
                     document.getElementById('pageTitle').textContent = 'Live Streams';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Live Streams';
                     document.getElementById('sectionTitle').textContent = 'Live Streams';
@@ -532,6 +627,7 @@
                     
                 case 'most-active':
                     showFilterBar(['limitFilterItem', 'sortFilterItem']);
+                    showSearchContainer(false);
                     document.getElementById('pageTitle').textContent = 'Most Active';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Most Active';
                     document.getElementById('sectionTitle').textContent = 'Most Active Streams';
@@ -539,7 +635,8 @@
                     break;
                     
                 case 'search':
-                    showFilterBar(['searchFilterItem', 'limitFilterItem']);
+                    showFilterBar(['limitFilterItem']);
+                    showSearchContainer(true);
                     document.getElementById('pageTitle').textContent = 'Search Streams';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Search';
                     document.getElementById('sectionTitle').textContent = 'Search Results';
@@ -548,6 +645,7 @@
                     
                 case 'channel-history':
                     showFilterBar(['channelFilterItem', 'timeWindowFilterItem']);
+                    showSearchContainer(false);
                     document.getElementById('pageTitle').textContent = 'Channel History';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Channel History';
                     document.getElementById('sectionTitle').textContent = 'Channel Analytics';
@@ -556,6 +654,7 @@
                     
                 case 'categories':
                     showFilterBar(['limitFilterItem']);
+                    showSearchContainer(false);
                     document.getElementById('pageTitle').textContent = 'Categories';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Categories';
                     document.getElementById('sectionTitle').textContent = 'Stream Categories';
@@ -689,7 +788,7 @@
             content.innerHTML = '<div class="loading">Searching streams...</div>';
             
             try {
-                const response = await fetch(`/api/search?platform=${filters.platform}&query=${encodeURIComponent(query)}&limit=${filters.limit}`);
+                const response = await fetch(`/api/search?platform=${filters.platform}&q=${encodeURIComponent(query)}&limit=${filters.limit}`);
                 
                 if (!response.ok) throw new Error('Search failed');
                 
@@ -967,6 +1066,9 @@
                                 <th class="sortable" onclick="sortTable('viewers')">Viewers</th>
                                 <th class="sortable" onclick="sortTable('followers')">Followers</th>
                                 <th class="sortable" onclick="sortTable('category')">Category</th>
+                                <th class="sortable" onclick="sortTable('language')">Language</th>
+                                <th class="sortable" onclick="sortTable('started_at')">Start Time</th>
+                                <th class="sortable" onclick="sortTable('duration')">Duration</th>
                                 <th>Link</th>
                             </tr>
                         </thead>
@@ -983,6 +1085,9 @@
                                     <td class="viewer-count">${(stream.viewers || 0).toLocaleString()}</td>
                                     <td class="follower-count">${(stream.followers || 0).toLocaleString()}</td>
                                     <td>${stream.category || 'N/A'}</td>
+                                    <td>${stream.language || 'English'}</td>
+                                    <td class="start-time">${stream.started_at ? new Date(stream.started_at).toLocaleString() : 'N/A'}</td>
+                                    <td class="duration">${stream.started_at ? formatDuration(Date.now() - new Date(stream.started_at).getTime()) : 'N/A'}</td>
                                     <td>
                                         ${stream.url ? `<a href="${stream.url}" target="_blank" class="stream-link">Watch</a>` : 'N/A'}
                                     </td>
