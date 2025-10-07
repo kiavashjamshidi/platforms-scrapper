@@ -667,7 +667,7 @@ async def collect_all_data():
 @router.get("/search")
 async def search_streams(
     platform: str = Query("kick", description="Platform: twitch or kick"),
-    q: str = Query(..., description="Search query", alias="query"),
+    query: str = Query(..., description="Search query"),
     limit: int = Query(50, ge=1, le=500, description="Number of results to return"),
     db: Session = Depends(get_db)
 ):
@@ -681,9 +681,9 @@ async def search_streams(
         ).filter(
             and_(
                 Channel.platform == platform,
-                func.lower(LiveSnapshot.title).like(f"%{q.lower()}%") |
-                func.lower(Channel.username).like(f"%{q.lower()}%") |
-                func.lower(LiveSnapshot.category).like(f"%{q.lower()}%")
+                func.lower(LiveSnapshot.title).like(f"%{query.lower()}%") |
+                func.lower(Channel.username).like(f"%{query.lower()}%") |
+                func.lower(LiveSnapshot.category).like(f"%{query.lower()}%")
             )
         ).order_by(desc(LiveSnapshot.viewer_count)).limit(limit).all()
         
@@ -707,7 +707,7 @@ async def search_streams(
         demo_streams = []
         for i in range(min(limit, 10)):
             demo_streams.append({
-                "title": f"Search Result {i+1}: {q} - {platform.title()} Stream",
+                "title": f"Search Result {i+1}: {query} - {platform.title()} Stream",
                 "channel": f"search_result_{i+1}",
                 "platform": platform,
                 "viewers": max(50, 2000 - (i * 150)),
