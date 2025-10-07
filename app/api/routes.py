@@ -572,9 +572,9 @@ async def get_channel_history_search(
             history_query = db.query(LiveSnapshot).filter(
                 and_(
                     LiveSnapshot.channel_id == channel_obj.id,
-                    LiveSnapshot.timestamp >= since
+                    LiveSnapshot.collected_at >= since
                 )
-            ).order_by(LiveSnapshot.timestamp.desc())
+            ).order_by(LiveSnapshot.collected_at.desc())
             
             snapshots = history_query.all()
             
@@ -583,7 +583,7 @@ async def get_channel_history_search(
                 chart_data = []
                 for snapshot in reversed(snapshots):  # Reverse for chronological order
                     chart_data.append({
-                        "timestamp": snapshot.timestamp.isoformat(),
+                        "timestamp": snapshot.collected_at.isoformat(),
                         "viewers": snapshot.viewer_count or 0,
                         "followers": channel_obj.follower_count or 0,
                         "isLive": True
@@ -667,7 +667,7 @@ async def collect_all_data():
 @router.get("/search")
 async def search_streams(
     platform: str = Query("kick", description="Platform: twitch or kick"),
-    query: str = Query(..., description="Search query"),
+    q: str = Query(..., description="Search query", alias="query"),
     limit: int = Query(50, ge=1, le=500, description="Number of results to return"),
     db: Session = Depends(get_db)
 ):
@@ -681,9 +681,9 @@ async def search_streams(
         ).filter(
             and_(
                 Channel.platform == platform,
-                func.lower(LiveSnapshot.title).like(f"%{query.lower()}%") |
-                func.lower(Channel.username).like(f"%{query.lower()}%") |
-                func.lower(LiveSnapshot.category).like(f"%{query.lower()}%")
+                func.lower(LiveSnapshot.title).like(f"%{q.lower()}%") |
+                func.lower(Channel.username).like(f"%{q.lower()}%") |
+                func.lower(LiveSnapshot.category).like(f"%{q.lower()}%")
             )
         ).order_by(desc(LiveSnapshot.viewer_count)).limit(limit).all()
         
@@ -707,7 +707,7 @@ async def search_streams(
         demo_streams = []
         for i in range(min(limit, 10)):
             demo_streams.append({
-                "title": f"Search Result {i+1}: {query} - {platform.title()} Stream",
+                "title": f"Search Result {i+1}: {q} - {platform.title()} Stream",
                 "channel": f"search_result_{i+1}",
                 "platform": platform,
                 "viewers": max(50, 2000 - (i * 150)),
