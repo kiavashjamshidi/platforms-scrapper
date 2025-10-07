@@ -94,9 +94,23 @@ async def health_check(db: Session = Depends(get_db)):
 
 @app.post("/collect-data", tags=["collection"])
 async def trigger_data_collection(background_tasks: BackgroundTasks):
-    """Manually trigger data collection."""
+    """Manually trigger data collection for both platforms."""
+    background_tasks.add_task(collect_all_data)
+    return {"message": "Data collection started for both platforms", "status": "running"}
+
+
+@app.post("/collect-kick", tags=["collection"])
+async def trigger_kick_collection(background_tasks: BackgroundTasks):
+    """Manually trigger Kick data collection."""
     background_tasks.add_task(collect_kick_data)
-    return {"message": "Data collection started", "status": "running"}
+    return {"message": "Kick data collection started", "status": "running"}
+
+
+@app.post("/collect-twitch", tags=["collection"])
+async def trigger_twitch_collection(background_tasks: BackgroundTasks):
+    """Manually trigger Twitch data collection."""
+    background_tasks.add_task(collect_twitch_data)
+    return {"message": "Twitch data collection started", "status": "running"}
 
 
 async def collect_kick_data():
@@ -107,7 +121,24 @@ async def collect_kick_data():
         await collector.collect_kick_streams()
         logger.info("Kick data collection completed")
     except Exception as e:
-        logger.error(f"Error during data collection: {e}")
+        logger.error(f"Error during Kick data collection: {e}")
+
+
+async def collect_twitch_data():
+    """Collect data from Twitch platform."""
+    try:
+        logger.info("Starting Twitch data collection...")
+        collector = StreamCollector()
+        await collector.collect_twitch_streams()
+        logger.info("Twitch data collection completed")
+    except Exception as e:
+        logger.error(f"Error during Twitch data collection: {e}")
+
+
+async def collect_all_data():
+    """Collect data from both platforms."""
+    await collect_kick_data()
+    await collect_twitch_data()
 
 
 # Background task to collect data periodically
@@ -115,7 +146,7 @@ async def start_background_tasks():
     """Start background data collection tasks."""
     while True:
         try:
-            await collect_kick_data()
+            await collect_all_data()
             await asyncio.sleep(120)  # Collect every 2 minutes
         except Exception as e:
             logger.error(f"Background task error: {e}")
