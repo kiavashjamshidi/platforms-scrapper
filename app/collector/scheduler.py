@@ -208,7 +208,7 @@ class StreamCollector:
                     "game_id": "1",
                     "viewer_count": 1250,
                     "language": "en",
-                    "started_at": datetime.utcnow().isoformat(),
+                    "started_at": datetime.utcnow(),
                     "thumbnail_url": None,
                     "stream_url": "https://kick.com/gaming_pro_1"
                 },
@@ -221,7 +221,7 @@ class StreamCollector:
                     "game_id": "2",
                     "viewer_count": 850,
                     "language": "en",
-                    "started_at": datetime.utcnow().isoformat(),
+                    "started_at": datetime.utcnow(),
                     "thumbnail_url": None,
                     "stream_url": "https://kick.com/kick_streamer_2"
                 },
@@ -234,7 +234,7 @@ class StreamCollector:
                     "game_id": "3",
                     "viewer_count": 2100,
                     "language": "en",
-                    "started_at": datetime.utcnow().isoformat(),
+                    "started_at": datetime.utcnow(),
                     "thumbnail_url": None,
                     "stream_url": "https://kick.com/minecraft_builder"
                 },
@@ -247,7 +247,7 @@ class StreamCollector:
                     "game_id": "4",
                     "viewer_count": 750,
                     "language": "en",
-                    "started_at": datetime.utcnow().isoformat(),
+                    "started_at": datetime.utcnow(),
                     "thumbnail_url": None,
                     "stream_url": "https://kick.com/valorant_ace"
                 },
@@ -260,7 +260,7 @@ class StreamCollector:
                     "game_id": "5",
                     "viewer_count": 450,
                     "language": "en",
-                    "started_at": datetime.utcnow().isoformat(),
+                    "started_at": datetime.utcnow(),
                     "thumbnail_url": None,
                     "stream_url": "https://kick.com/irl_adventures"
                 }
