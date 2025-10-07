@@ -421,9 +421,18 @@
         });
 
         function loadSection(section) {
-            // Update active button
+            // Update active button - find the clicked button
             document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // Find and activate the button that was clicked
+            const buttons = document.querySelectorAll('.nav-button');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('Live Streams') && section === 'live-streams') btn.classList.add('active');
+                if (btn.textContent.includes('Most Active') && section === 'most-active') btn.classList.add('active');
+                if (btn.textContent.includes('Search Streams') && section === 'search') btn.classList.add('active');
+                if (btn.textContent.includes('Channel History') && section === 'channel-history') btn.classList.add('active');
+                if (btn.textContent.includes('Categories') && section === 'categories') btn.classList.add('active');
+            });
             
             currentSection = section;
             
@@ -465,8 +474,8 @@
                         break;
                         
                     case 'most-active':
-                        const timeWindow = document.getElementById('timeWindow').value;
-                        data = await fetchMostActive(platform, limit, timeWindow);
+                        const mostActiveTimeWindow = document.getElementById('timeWindow').value;
+                        data = await fetchMostActive(platform, limit, mostActiveTimeWindow);
                         displayMostActiveTable(data, 'Most Active Streamers');
                         break;
                         
@@ -483,8 +492,8 @@
                     case 'channel-history':
                         const channelId = document.getElementById('channelInput').value;
                         if (channelId) {
-                            const timeWindow = document.getElementById('timeWindow').value;
-                            data = await fetchChannelHistory(platform, channelId, timeWindow);
+                            const channelTimeWindow = document.getElementById('timeWindow').value;
+                            data = await fetchChannelHistory(platform, channelId, channelTimeWindow);
                             displayChannelHistory(data, channelId);
                         } else {
                             document.getElementById('content').innerHTML = '<div class="no-data">Enter a channel ID or username to see history</div>';
@@ -492,8 +501,8 @@
                         break;
                         
                     case 'categories':
-                        const timeWindow = document.getElementById('timeWindow').value;
-                        data = await fetchCategories(platform, timeWindow, limit);
+                        const categoriesTimeWindow = document.getElementById('timeWindow').value;
+                        data = await fetchCategories(platform, categoriesTimeWindow, limit);
                         displayCategoriesTable(data, 'Popular Categories');
                         break;
                 }
@@ -510,9 +519,19 @@
         }
 
         async function fetchMostActive(platform, limit, timeWindow) {
-            const response = await fetch(`${API_BASE}/live/most-active?platform=${platform}&limit=${limit}&window=${timeWindow}`);
-            if (!response.ok) throw new Error('Failed to fetch most active');
-            return await response.json();
+            try {
+                const response = await fetch(`${API_BASE}/live/most-active?platform=${platform}&limit=${limit}&window=${timeWindow}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        return []; // Return empty array if endpoint not found
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.warn('Most active endpoint not available, returning empty data');
+                return [];
+            }
         }
 
         async function fetchSearch(platform, query, limit) {
@@ -522,15 +541,35 @@
         }
 
         async function fetchChannelHistory(platform, channelId, timeWindow) {
-            const response = await fetch(`${API_BASE}/channel/${platform}/${encodeURIComponent(channelId)}/history?window=${timeWindow}`);
-            if (!response.ok) throw new Error('Failed to fetch channel history');
-            return await response.json();
+            try {
+                const response = await fetch(`${API_BASE}/channel/${platform}/${encodeURIComponent(channelId)}/history?window=${timeWindow}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        return { snapshots: [], total_snapshots: 0, avg_viewer_count: 0, peak_viewer_count: 0 };
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.warn('Channel history endpoint not available');
+                return { snapshots: [], total_snapshots: 0, avg_viewer_count: 0, peak_viewer_count: 0 };
+            }
         }
 
         async function fetchCategories(platform, timeWindow, limit) {
-            const response = await fetch(`${API_BASE}/stats/categories?platform=${platform}&window=${timeWindow}&limit=${limit}`);
-            if (!response.ok) throw new Error('Failed to fetch categories');
-            return await response.json();
+            try {
+                const response = await fetch(`${API_BASE}/stats/categories?platform=${platform}&window=${timeWindow}&limit=${limit}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        return [];
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.warn('Categories endpoint not available');
+                return [];
+            }
         }
 
         // Display Functions
