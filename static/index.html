@@ -729,19 +729,62 @@
             }
             
             const content = document.getElementById('content');
-            content.innerHTML = '<div class="loading">Loading channel history...</div>';
+            content.innerHTML = '<div class="loading">Searching for channel history...</div>';
             
             try {
                 const platform = filters.platform;
                 const timeWindow = filters.timeWindow;
                 
-                // Generate demo historical data
-                const historyData = generateDemoHistoryData(channel, timeWindow);
+                // Try to get real channel data first
+                const response = await fetch(`/api/channel-history?platform=${platform}&channel=${encodeURIComponent(channel)}&timeWindow=${timeWindow}`);
                 
+                if (!response.ok) throw new Error('Failed to fetch channel history');
+                
+                const historyData = await response.json();
+                
+                if (!historyData.found || historyData.data.length === 0) {
+                    // Channel not found or no data, show appropriate message
+                    content.innerHTML = `
+                        <div style="padding: 40px; text-align: center;">
+                            <h3 style="color: #e74c3c; margin-bottom: 15px;">❌ Channel Not Found</h3>
+                            <p style="margin-bottom: 15px; color: #57606f;">
+                                Channel "${channel}" was not found on ${platform.toUpperCase()}.
+                            </p>
+                            <p style="font-size: 14px; color: #a4b0be; margin-bottom: 20px;">
+                                ${historyData.message || 'Try checking the spelling or make sure the channel exists and has been active recently.'}
+                            </p>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: left; max-width: 500px; margin: 0 auto;">
+                                <h4 style="margin-bottom: 10px; color: #2f3542;">💡 Tips:</h4>
+                                <ul style="color: #57606f; line-height: 1.6;">
+                                    <li>Try the exact username (case-sensitive)</li>
+                                    <li>For Twitch: Use the channel name without spaces</li>
+                                    <li>For Kick: Use the display name or username</li>
+                                    <li>Make sure the channel has been active recently</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Channel found, render the chart
                 renderChannelHistory(historyData, channel);
+                
             } catch (error) {
                 console.error('Error loading channel history:', error);
-                content.innerHTML = '<div class="no-data">Error loading channel history</div>';
+                // Fallback to demo data if API fails
+                content.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: #f39c12; margin-bottom: 15px;">⚠️ API Error</h3>
+                        <p style="margin-bottom: 15px; color: #57606f;">
+                            Unable to fetch real data for "${channel}". Showing demo data instead.
+                        </p>
+                    </div>
+                `;
+                
+                // Generate demo data as fallback
+                const demoData = generateDemoHistoryData(channel, filters.timeWindow);
+                renderChannelHistory(demoData, channel);
             }
         }
         
@@ -800,7 +843,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">${historyData.summary.totalFollowers.toLocaleString()}</div>
-                        <div class="stat-label">New Followers</div>
+                        <div class="stat-label">Total Followers</div>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -835,7 +878,7 @@
                         fill: true,
                         tension: 0.4
                     }, {
-                        label: 'New Followers',
+                        label: 'Followers',
                         data: historyData.data.map(d => d.followers),
                         borderColor: '#3742fa',
                         backgroundColor: 'rgba(55, 66, 250, 0.1)',
@@ -850,7 +893,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: `${channel} - Analytics (${historyData.timeWindow.toUpperCase()})`
+                            text: `${historyData.channel || channel} - Analytics (${historyData.timeWindow.toUpperCase()})`
                         },
                         legend: {
                             position: 'top'
@@ -872,7 +915,7 @@
                             position: 'right',
                             title: {
                                 display: true,
-                                text: 'New Followers'
+                                text: 'Followers'
                             },
                             grid: {
                                 drawOnChartArea: false,
