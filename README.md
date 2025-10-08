@@ -29,14 +29,14 @@ psql postgres -c "CREATE DATABASE streaming_platform OWNER streamdata;"
 ### 3. Run the Application
 
 ```bash
-./run-local.sh
+./start.sh
 ```
 
 This will:
 
-- Check PostgreSQL is running
-- Create virtual environment if needed
-- Install dependencies
+- Check Docker is running
+- Check .env file exists
+- Build and start containers with Docker Compose
 - Start the application on [http://localhost:8000](http://localhost:8000)
 
 ### 4. Docker Quick Commands
@@ -63,8 +63,46 @@ docker-compose logs -f
 - ✅ Real-time data collection from Twitch and Kick
 - ✅ Automatic collection every 2 minutes
 - ✅ Search and filter streams
-- ✅ Sort by viewers, followers, etc.
 - ✅ View stream details (language, duration, start time)
+
+## Screenshots
+
+### Top Live Streams
+
+**Twitch Streams:**
+![Top Live Streams - Twitch](imgs/top-live-streams-twitch.png)
+
+**Kick Streams:**
+![Top Live Streams - Kick](imgs/top-live-streams-kick.png)
+
+### Search and Filter
+
+**Search Twitch Streams:**
+![Search Streams - Twitch](imgs/search-streams-twitch.png)
+
+**Search Kick Streams:**
+![Search Streams - Kick](imgs/search-streams-kick.png)
+
+### Most Active Streamers
+
+**Most Active on Twitch:**
+![Most Active Streamers - Twitch](imgs/most-active-twitch.png)
+
+**Most Active on Kick:**
+![Most Active Streamers - Kick](imgs/most-active-kick.png)
+
+### Channel History
+
+**Twitch Channel History:**
+![Channel History - Twitch](imgs/channel-history-twitch.png)
+
+**Kick Channel History:**
+![Channel History - Kick](imgs/channel-history-kick.png)
+
+### Categories Statistics
+
+**Popular Categories on Twitch:**
+![Categories Statistics - Twitch](imgs/categories-twitch.png)
 
 ## Manual Collection
 
@@ -81,51 +119,6 @@ Edit `.env` file to configure:
 - Database connection
 - API credentials (Twitch, Kick)
 - Collection interval
-
-## Troubleshooting
-
-### PostgreSQL not running
-
-```bash
-brew services start postgresql@14
-```
-
-### Database connection error
-
-```bash
-# Check PostgreSQL status
-pg_isready -h localhost -p 5432
-
-# Recreate database
-dropdb streaming_platform
-createdb streaming_platform -O streamdata
-```
-
-### Port 8000 already in use
-
-```bash
-# Find process using port 8000
-lsof -ti:8000 | xargs kill -9
-
-# Or change port in .env
-API_PORT=8001
-```
-
-## Development
-
-```bash
-# Activate virtual environment
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run with auto-reload
-uvicorn app.main:app --reload
-
-# Run tests
-pytest tests/
-```
 
 ## Project Structure
 
@@ -174,16 +167,12 @@ Retrieve the top live streams sorted by viewer count or follower count.
 
 - `platform` (string, default: "twitch"): Platform to query (twitch/kick)
 - `limit` (integer, default: 50, max: 500): Number of results to return
-- `sort_by` (string, default: "viewers"): Sort by "viewers" (current viewer count) or "followers" (channel follower count)
 
 **Example Request:**
 
 ```bash
-# Top streams by current viewers (default)
+# Top streams by current viewers
 curl "http://localhost:8000/live/top?platform=twitch&limit=10"
-
-# Top streams by follower count
-curl "http://localhost:8000/live/top?platform=twitch&limit=10&sort_by=followers"
 ```
 
 **Example Response:**

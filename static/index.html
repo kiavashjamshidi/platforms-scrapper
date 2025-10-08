@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f6fa;
@@ -19,40 +20,41 @@
             flex-direction: column;
             height: 100vh;
         }
-        
+
         /* Top Filters Bar */
         .top-filters {
             background: white;
             color: #2f3542;
             padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: none; /* Hidden by default, shown when needed */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            /* Hidden by default, shown when needed */
             border-bottom: 2px solid #f1f2f6;
         }
-        
+
         .top-filters.show {
             display: block;
         }
-        
+
         .filters-container {
             display: flex;
             gap: 20px;
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .filter-item {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
-        
+
         .filter-item label {
             font-size: 12px;
             color: #57606f;
             font-weight: 500;
         }
-        
+
         .filter-item select,
         .filter-item input {
             padding: 8px 12px;
@@ -63,18 +65,18 @@
             font-size: 14px;
             min-width: 120px;
         }
-        
+
         .filter-item select:focus,
         .filter-item input:focus {
             outline: none;
             border-color: #3742fa;
             background: white;
         }
-        
+
         .filter-item input[type="text"] {
             min-width: 200px;
         }
-        
+
         .refresh-btn {
             background: #3742fa;
             color: white;
@@ -86,18 +88,18 @@
             font-weight: 500;
             transition: background 0.3s;
         }
-        
+
         .refresh-btn:hover {
             background: #5352ed;
         }
-        
+
         /* Main Layout */
         .main-layout {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
-        
+
         /* Sidebar */
         .sidebar {
             width: 280px;
@@ -105,20 +107,20 @@
             color: white;
             padding: 20px;
             overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .sidebar h2 {
             color: #ff6b6b;
             margin-bottom: 30px;
             text-align: center;
             font-size: 20px;
         }
-        
+
         .nav-section {
             margin-bottom: 30px;
         }
-        
+
         .nav-section h3 {
             color: #a4b0be;
             font-size: 14px;
@@ -126,7 +128,7 @@
             margin-bottom: 15px;
             letter-spacing: 1px;
         }
-        
+
         .nav-button {
             display: block;
             width: 100%;
@@ -141,49 +143,49 @@
             transition: all 0.3s;
             text-align: left;
         }
-        
+
         .nav-button:hover {
             background: #5352ed;
             transform: translateX(5px);
         }
-        
+
         .nav-button.active {
             background: #ff6b6b;
         }
-        
+
         /* Main Content */
         .main-content {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
         }
-        
+
         .header {
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        
+
         .header h1 {
             color: #2f3542;
             margin-bottom: 10px;
         }
-        
+
         .breadcrumb {
             color: #57606f;
             font-size: 14px;
         }
-        
+
         .content-section {
             background: white;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             position: relative;
         }
-        
+
         .search-container {
             position: absolute;
             top: 20px;
@@ -197,24 +199,24 @@
             min-width: 280px;
             display: none;
         }
-        
+
         .search-container.visible {
             display: block;
         }
-        
+
         .search-container h4 {
             margin: 0 0 10px 0;
             color: #3742fa;
             font-size: 14px;
             font-weight: 600;
         }
-        
+
         .search-input-group {
             display: flex;
             gap: 8px;
             align-items: center;
         }
-        
+
         .search-input-group input {
             flex: 1;
             padding: 8px 12px;
@@ -224,7 +226,7 @@
             background: white;
             color: #2f3542;
         }
-        
+
         .search-input-group button {
             padding: 8px 15px;
             background: white;
@@ -236,12 +238,12 @@
             font-weight: 500;
             transition: all 0.3s;
         }
-        
+
         .search-input-group button:hover {
             background: #3742fa;
             color: white;
         }
-        
+
         .section-header {
             background: #f1f2f6;
             padding: 15px 20px;
@@ -250,36 +252,36 @@
             justify-content: between;
             align-items: center;
         }
-        
+
         .section-title {
             font-size: 18px;
             color: #2f3542;
             margin: 0;
         }
-        
+
         .loading {
             text-align: center;
             padding: 40px;
             color: #57606f;
         }
-        
+
         /* Table Styles */
         .table-container {
             overflow-x: auto;
         }
-        
+
         .data-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .data-table th,
         .data-table td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid #eee;
         }
-        
+
         .data-table th {
             background: #f8f9fa;
             font-weight: 600;
@@ -288,32 +290,32 @@
             user-select: none;
             position: relative;
         }
-        
+
         .data-table th:hover {
             background: #e9ecef;
         }
-        
+
         .data-table th.sortable::after {
             content: '↕';
             position: absolute;
             right: 5px;
             opacity: 0.5;
         }
-        
+
         .data-table th.sort-asc::after {
             content: '↑';
             opacity: 1;
         }
-        
+
         .data-table th.sort-desc::after {
             content: '↓';
             opacity: 1;
         }
-        
+
         .data-table tr:hover {
             background: #f8f9fa;
         }
-        
+
         .platform-badge {
             display: inline-block;
             padding: 3px 8px;
@@ -322,42 +324,42 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        
+
         .platform-kick {
             background: #53d769;
             color: white;
         }
-        
+
         .platform-twitch {
             background: #9146ff;
             color: white;
         }
-        
+
         .viewer-count {
             color: #e74c3c;
             font-weight: bold;
         }
-        
+
         .follower-count {
             color: #3498db;
             font-weight: bold;
         }
-        
+
         .stream-link {
             color: #3742fa;
             text-decoration: none;
         }
-        
+
         .stream-link:hover {
             text-decoration: underline;
         }
-        
+
         .no-data {
             text-align: center;
             padding: 40px;
             color: #57606f;
         }
-        
+
         /* Channel History Styles */
         .history-summary {
             background: #f8f9fa;
@@ -368,63 +370,63 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
         }
-        
+
         .stat-card {
             background: white;
             padding: 15px;
             border-radius: 6px;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        
+
         .stat-value {
             font-size: 24px;
             font-weight: bold;
             color: #2f3542;
         }
-        
+
         .stat-label {
             font-size: 12px;
             color: #57606f;
             text-transform: uppercase;
             margin-top: 5px;
         }
-        
+
         .chart-container {
             padding: 20px;
             height: 400px;
         }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
             .main-layout {
                 flex-direction: column;
             }
-            
+
             .sidebar {
                 width: 100%;
                 height: auto;
             }
-            
+
             .main-content {
                 padding: 10px;
             }
-            
+
             .filters-container {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .filter-item {
                 flex-direction: row;
                 align-items: center;
                 gap: 10px;
             }
-            
+
             .filter-item label {
                 min-width: 80px;
             }
-            
+
             .search-container {
                 position: relative;
                 top: 0;
@@ -436,12 +438,13 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Top Filters Bar - Now moved under header for each page -->
     <div class="main-layout">
         <div class="sidebar">
             <h2>🎮 Analytics Dashboard</h2>
-            
+
             <div class="nav-section">
                 <h3>Navigation</h3>
                 <button class="nav-button" onclick="loadSection('live-streams')">
@@ -460,7 +463,7 @@
                     🎯 Categories
                 </button>
             </div>
-            
+
             <div class="nav-section">
                 <h3>Actions</h3>
                 <button class="nav-button" onclick="exportData()">
@@ -471,20 +474,20 @@
                 </button>
             </div>
         </div>
-        
+
         <div class="main-content">
             <div class="header">
                 <h1 id="pageTitle">Top Live Streams</h1>
                 <div class="breadcrumb" id="breadcrumb">Dashboard > Top Live Streams</div>
             </div>
-            
+
             <!-- Filters under header - specific to each page -->
             <div id="pageFilters" class="top-filters show">
                 <div class="filters-container" id="filtersContainer">
                     <!-- Filters will be dynamically added here based on the page -->
                 </div>
             </div>
-            
+
             <div class="content-section">
                 <div class="section-header">
                     <h2 class="section-title" id="sectionTitle">Top Live Streams</h2>
@@ -501,13 +504,13 @@
         let currentData = [];
         let currentSort = { column: '', direction: 'asc' };
         let historyChart = null;
-        
+
         // Format duration from milliseconds to human readable format
         function formatDuration(milliseconds) {
             const seconds = Math.floor(milliseconds / 1000);
             const minutes = Math.floor(seconds / 60);
             const hours = Math.floor(minutes / 60);
-            
+
             if (hours > 0) {
                 return `${hours}h ${minutes % 60}m`;
             } else if (minutes > 0) {
@@ -516,17 +519,17 @@
                 return `${seconds}s`;
             }
         }
-        
+
         // Create filter HTML dynamically
         function createFilters(filters) {
             const container = document.getElementById('filtersContainer');
             container.innerHTML = '';
-            
+
             filters.forEach(filter => {
                 const filterDiv = document.createElement('div');
                 filterDiv.className = 'filter-item';
-                
-                switch(filter) {
+
+                switch (filter) {
                     case 'platform':
                         filterDiv.innerHTML = `
                             <label>Platform</label>
@@ -544,15 +547,6 @@
                                 <option value="25">25 results</option>
                                 <option value="50" selected>50 results</option>
                                 <option value="100">100 results</option>
-                            </select>
-                        `;
-                        break;
-                    case 'sort':
-                        filterDiv.innerHTML = `
-                            <label>Sort By</label>
-                            <select id="sortFilter" onchange="refreshData()">
-                                <option value="viewers">Viewers</option>
-                                <option value="followers">Followers</option>
                             </select>
                         `;
                         break;
@@ -585,7 +579,7 @@
                 }
                 container.appendChild(filterDiv);
             });
-            
+
             // Add refresh button
             const refreshBtn = document.createElement('button');
             refreshBtn.className = 'refresh-btn';
@@ -597,15 +591,15 @@
         // Load different sections with appropriate filters
         function loadSection(section) {
             currentSection = section;
-            
+
             // Update navigation buttons
             document.querySelectorAll('.nav-button').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
+
             // Configure filters for each section
-            switch(section) {
+            switch (section) {
                 case 'live-streams':
                     createFilters(['platform', 'limit', 'sort']);
                     document.getElementById('pageTitle').textContent = 'Top Live Streams';
@@ -613,7 +607,7 @@
                     document.getElementById('sectionTitle').textContent = 'Top Live Streams';
                     loadLiveStreams();
                     break;
-                    
+
                 case 'most-active':
                     createFilters(['platform', 'limit', 'timeWindow']);
                     document.getElementById('pageTitle').textContent = 'Most Active';
@@ -621,7 +615,7 @@
                     document.getElementById('sectionTitle').textContent = 'Most Active Streams';
                     loadMostActive();
                     break;
-                    
+
                 case 'search':
                     createFilters(['platform', 'limit', 'search']);
                     document.getElementById('pageTitle').textContent = 'Search Streams';
@@ -629,7 +623,7 @@
                     document.getElementById('sectionTitle').textContent = 'Search Results';
                     loadSearchInterface();
                     break;
-                    
+
                 case 'channel-history':
                     createFilters(['platform', 'channel', 'timeWindow']);
                     document.getElementById('pageTitle').textContent = 'Channel History';
@@ -637,7 +631,7 @@
                     document.getElementById('sectionTitle').textContent = 'Channel Analytics';
                     loadChannelHistory();
                     break;
-                    
+
                 case 'categories':
                     createFilters(['platform', 'limit']);
                     document.getElementById('pageTitle').textContent = 'Categories';
@@ -645,15 +639,15 @@
                     document.getElementById('sectionTitle').textContent = 'Stream Categories';
                     loadCategories();
                     break;
-                    
+
                 default:
                     createFilters([]);
             }
         }
-        
+
         // Refresh data based on current section and filters
         function refreshData() {
-            switch(currentSection) {
+            switch (currentSection) {
                 case 'live-streams':
                     loadLiveStreams();
                     break;
@@ -671,7 +665,7 @@
                     break;
             }
         }
-        
+
         // Get current filter values
         function getCurrentFilters() {
             const platformEl = document.getElementById('platformFilter');
@@ -680,7 +674,7 @@
             const searchEl = document.getElementById('searchQuery');
             const channelEl = document.getElementById('channelInput');
             const timeWindowEl = document.getElementById('timeWindow');
-            
+
             return {
                 platform: platformEl ? platformEl.value : 'twitch',
                 limit: limitEl ? parseInt(limitEl.value) : 50,
@@ -690,61 +684,61 @@
                 timeWindow: timeWindowEl ? timeWindowEl.value : '24h'
             };
         }
-        
+
         // Load live streams with filters
         async function loadLiveStreams() {
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">Loading live streams...</div>';
-            
+
             try {
                 const filters = getCurrentFilters();
                 const platform = filters.platform;
                 const limit = filters.limit;
-                
+
                 const response = await fetch(`/api/streams?platform=${platform}&limit=${limit}`);
                 if (!response.ok) throw new Error('Failed to fetch streams');
-                
+
                 const data = await response.json();
                 currentData = data.streams || [];
-                
+
                 if (currentData.length === 0) {
                     const message = data.message || 'No live streams found';
                     content.innerHTML = `<div class="no-data">${message}</div>`;
                     return;
                 }
-                
+
                 renderStreamsTable(currentData);
             } catch (error) {
                 console.error('Error loading streams:', error);
                 content.innerHTML = '<div class="no-data">Error loading streams</div>';
             }
         }
-        
+
         // Load most active streams
         async function loadMostActive() {
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">Loading most active streams...</div>';
-            
+
             try {
                 const filters = getCurrentFilters();
                 const timeWindow = filters.timeWindow || '24h';
-                
+
                 // Use the channel activity endpoint to get most active channels
                 const response = await fetch(`/api/live/most-active?platform=${filters.platform}&limit=${filters.limit}&window=${timeWindow}`);
-                
+
                 if (!response.ok) throw new Error('Failed to fetch most active streams');
-                
+
                 const data = await response.json();
                 // API returns array directly, not wrapped in object
                 const channels = Array.isArray(data) ? data : (data.channels || []);
-                
+
                 currentData = channels;
-                
+
                 if (currentData.length === 0) {
                     content.innerHTML = '<div class="no-data">No active streams found for the selected time window</div>';
                     return;
                 }
-                
+
                 // Render as table with activity stats
                 renderMostActiveTable(currentData, timeWindow);
             } catch (error) {
@@ -752,11 +746,11 @@
                 content.innerHTML = '<div class="no-data">Error loading most active streams. Please try again.</div>';
             }
         }
-        
+
         // Render most active table with stats
         function renderMostActiveTable(channels, timeWindow) {
             const content = document.getElementById('content');
-            
+
             let html = `
                 <div style="padding: 20px;">
                     <table class="data-table">
@@ -773,7 +767,7 @@
                         </thead>
                         <tbody>
             `;
-            
+
             channels.forEach((channel, index) => {
                 const hours = channel.total_duration_minutes ? Math.round(channel.total_duration_minutes / 60) : 0;
                 html += `
@@ -792,16 +786,16 @@
                     </tr>
                 `;
             });
-            
+
             html += `
                         </tbody>
                     </table>
                 </div>
             `;
-            
+
             content.innerHTML = html;
         }
-        
+
         // Load search interface
         function loadSearchInterface() {
             const content = document.getElementById('content');
@@ -816,45 +810,45 @@
                 </div>
             `;
         }
-        
+
         // Perform search
         async function performSearch() {
             const filters = getCurrentFilters();
             const query = filters.search.trim();
-            
+
             if (!query) {
                 loadSearchInterface();
                 return;
             }
-            
+
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">Searching streams...</div>';
-            
+
             try {
                 const response = await fetch(`/api/search?platform=${filters.platform}&q=${encodeURIComponent(query)}&limit=${filters.limit}`);
-                
+
                 if (!response.ok) throw new Error('Search failed');
-                
+
                 const data = await response.json();
                 currentData = data.streams || [];
-                
+
                 if (currentData.length === 0) {
                     content.innerHTML = `<div class="no-data">No streams found for "${query}"</div>`;
                     return;
                 }
-                
+
                 renderStreamsTable(currentData);
             } catch (error) {
                 console.error('Error searching streams:', error);
                 content.innerHTML = `<div class="no-data">Error searching for "${query}"</div>`;
             }
         }
-        
+
         // Load channel history with chart
         async function loadChannelHistory() {
             const filters = getCurrentFilters();
             const channel = filters.channel.trim();
-            
+
             if (!channel) {
                 const content = document.getElementById('content');
                 content.innerHTML = `
@@ -869,21 +863,21 @@
                 `;
                 return;
             }
-            
+
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">Searching for channel history...</div>';
-            
+
             try {
                 const platform = filters.platform;
                 const timeWindow = filters.timeWindow;
-                
+
                 // Try to get real channel data first
                 const response = await fetch(`/api/channel-history?platform=${platform}&channel=${encodeURIComponent(channel)}&timeWindow=${timeWindow}`);
-                
+
                 if (!response.ok) throw new Error('Failed to fetch channel history');
-                
+
                 const historyData = await response.json();
-                
+
                 if (!historyData.found || historyData.data.length === 0) {
                     // Channel not found or no data, show appropriate message
                     content.innerHTML = `
@@ -908,10 +902,10 @@
                     `;
                     return;
                 }
-                
+
                 // Channel found, render the chart
                 renderChannelHistory(historyData, channel);
-                
+
             } catch (error) {
                 console.error('Error loading channel history:', error);
                 // Fallback to demo data if API fails
@@ -923,27 +917,27 @@
                         </p>
                     </div>
                 `;
-                
+
                 // Generate demo data as fallback
                 const demoData = generateDemoHistoryData(channel, filters.timeWindow);
                 renderChannelHistory(demoData, channel);
             }
         }
-        
+
         // Generate demo historical data
         function generateDemoHistoryData(channel, timeWindow) {
             const days = timeWindow === '24h' ? 1 : timeWindow === '7d' ? 7 : 30;
             const hoursBack = days * 24;
             const dataPoints = Math.min(hoursBack, 48); // Max 48 data points
-            
+
             const data = [];
             const now = new Date();
-            
+
             for (let i = dataPoints; i >= 0; i--) {
                 const time = new Date(now.getTime() - (i * (hoursBack / dataPoints) * 60 * 60 * 1000));
                 const viewers = Math.floor(Math.random() * 1000) + 100;
                 const followers = Math.floor(Math.random() * 50) + 10;
-                
+
                 data.push({
                     timestamp: time,
                     viewers: viewers,
@@ -951,7 +945,7 @@
                     isLive: Math.random() > 0.3 // 70% chance of being live
                 });
             }
-            
+
             return {
                 channel: channel,
                 timeWindow: timeWindow,
@@ -964,11 +958,11 @@
                 }
             };
         }
-        
+
         // Render channel history with chart
         function renderChannelHistory(historyData, channel) {
             const content = document.getElementById('content');
-            
+
             content.innerHTML = `
                 <div class="history-summary">
                     <div class="stat-card">
@@ -992,24 +986,24 @@
                     <canvas id="historyChart"></canvas>
                 </div>
             `;
-            
+
             // Create chart
             const ctx = document.getElementById('historyChart').getContext('2d');
-            
+
             // Destroy existing chart if it exists
             if (historyChart) {
                 historyChart.destroy();
             }
-            
+
             historyChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: historyData.data.map(d => {
                         const date = new Date(d.timestamp);
                         if (historyData.timeWindow === '24h') {
-                            return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         } else {
-                            return date.toLocaleDateString([], {month: 'short', day: 'numeric'});
+                            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
                         }
                     }),
                     datasets: [{
@@ -1067,41 +1061,41 @@
                 }
             });
         }
-        
+
         // Load categories
         async function loadCategories() {
             const content = document.getElementById('content');
             content.innerHTML = '<div class="loading">Loading categories...</div>';
-            
+
             try {
                 const filters = getCurrentFilters();
                 const response = await fetch(`/api/categories?platform=${filters.platform}&limit=${filters.limit}`);
-                
+
                 if (!response.ok) throw new Error('Failed to fetch categories');
-                
+
                 const data = await response.json();
                 const categories = data.categories || [];
-                
+
                 if (categories.length === 0) {
                     content.innerHTML = '<div class="no-data">No categories found</div>';
                     return;
                 }
-                
+
                 renderCategoriesTable(categories);
             } catch (error) {
                 console.error('Error loading categories:', error);
                 content.innerHTML = '<div class="no-data">Error loading categories</div>';
             }
         }
-        
+
         // Render streams table
         function renderStreamsTable(streams) {
             const content = document.getElementById('content');
-            
+
             // Check if we're showing Kick streams (they don't have follower data)
             const filters = getCurrentFilters();
             const showFollowers = filters.platform !== 'kick';
-            
+
             const html = `
                 <div class="table-container">
                     <table class="data-table">
@@ -1144,14 +1138,14 @@
                     </table>
                 </div>
             `;
-            
+
             content.innerHTML = html;
         }
-        
+
         // Render categories table
         function renderCategoriesTable(categories) {
             const content = document.getElementById('content');
-            
+
             const html = `
                 <div class="table-container">
                     <table class="data-table">
@@ -1180,10 +1174,10 @@
                     </table>
                 </div>
             `;
-            
+
             content.innerHTML = html;
         }
-        
+
         // Sort table
         function sortTable(column) {
             if (currentSort.column === column) {
@@ -1192,69 +1186,69 @@
                 currentSort.column = column;
                 currentSort.direction = 'asc';
             }
-            
+
             currentData.sort((a, b) => {
                 let aVal = a[column];
                 let bVal = b[column];
-                
+
                 if (typeof aVal === 'string') {
                     aVal = aVal.toLowerCase();
                     bVal = bVal.toLowerCase();
                 }
-                
+
                 if (currentSort.direction === 'asc') {
                     return aVal > bVal ? 1 : -1;
                 } else {
                     return aVal < bVal ? 1 : -1;
                 }
             });
-            
+
             if (currentSection === 'categories') {
                 renderCategoriesTable(currentData);
             } else {
                 renderStreamsTable(currentData);
             }
-            
+
             // Update sort indicators
             document.querySelectorAll('.data-table th').forEach(th => {
                 th.classList.remove('sort-asc', 'sort-desc');
             });
-            
-            const targetTh = Array.from(document.querySelectorAll('.data-table th')).find(th => 
+
+            const targetTh = Array.from(document.querySelectorAll('.data-table th')).find(th =>
                 th.textContent.toLowerCase().includes(column.toLowerCase())
             );
-            
+
             if (targetTh) {
                 targetTh.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
             }
         }
-        
+
         // Export data as CSV
         function exportData() {
             if (currentData.length === 0) {
                 alert('No data to export');
                 return;
             }
-            
+
             const headers = Object.keys(currentData[0]).join(',');
-            const rows = currentData.map(item => 
-                Object.values(item).map(val => 
+            const rows = currentData.map(item =>
+                Object.values(item).map(val =>
                     typeof val === 'string' && val.includes(',') ? `"${val}"` : val
                 ).join(',')
             );
-            
+
             const csv = [headers, ...rows].join('\n');
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
-            
+
             const a = document.createElement('a');
             a.href = url;
             a.download = `${currentSection}_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
-            
+
             window.URL.revokeObjectURL(url);
         }
-        
+
         // Collect data
         async function collectData() {
             try {
@@ -1269,37 +1263,38 @@
                 alert('Error starting data collection');
             }
         }
-        
+
         // Event listeners for filters
         document.getElementById('platformFilter').addEventListener('change', refreshData);
         document.getElementById('limitFilter').addEventListener('change', refreshData);
         document.getElementById('sortFilter').addEventListener('change', refreshData);
-        
+
         // Search on Enter key
-        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+        document.getElementById('searchQuery').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 performSearch();
             }
         });
-        
+
         // Channel input on Enter key
-        document.getElementById('channelInput').addEventListener('keypress', function(e) {
+        document.getElementById('channelInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 loadChannelHistory();
             }
         });
-        
+
         // Time window change
-        document.getElementById('timeWindow').addEventListener('change', function() {
+        document.getElementById('timeWindow').addEventListener('change', function () {
             if (currentSection === 'channel-history') {
                 loadChannelHistory();
             }
         });
-        
+
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadSection('live-streams');
         });
     </script>
 </body>
+
 </html>

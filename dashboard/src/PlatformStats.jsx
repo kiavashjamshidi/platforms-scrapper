@@ -8,7 +8,7 @@ function PlatformStats({ platform }) {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`/live/top?platform=${platform}&limit=100&sort_by=viewers`)
+    axios.get(`/live/top?platform=${platform}&limit=100`)
       .then(res => {
         const streams = res.data;
         const totalViewers = streams.reduce((sum, s) => sum + s.viewer_count, 0);

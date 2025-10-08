@@ -11,12 +11,11 @@ const TopStreams = () => {
   const [loading, setLoading] = useState(false);
   const [platform, setPlatform] = useState('kick');
   const [limit, setLimit] = useState(20);
-  const [sortBy, setSortBy] = useState('viewers');
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`/live/top?platform=${platform}&limit=${limit}&sort_by=${sortBy}`);
+      const response = await axios.get(`/live/top?platform=${platform}&limit=${limit}`);
       setData(response.data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -193,17 +192,7 @@ const TopStreams = () => {
               style={{ width: 100 }}
             />
           </div>
-          <div>
-            <label style={{ marginRight: 8 }}>Sort by:</label>
-            <Select
-              value={sortBy}
-              onChange={setSortBy}
-              style={{ width: 150 }}
-            >
-              <Option value="viewers">Current Viewers</Option>
-              <Option value="followers">Follower Count</Option>
-            </Select>
-          </div>
+          
           <Button type="primary" onClick={fetchData} loading={loading}>
             Apply Filters
           </Button>

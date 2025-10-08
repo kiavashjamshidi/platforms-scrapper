@@ -43,7 +43,6 @@ def parse_time_window(window: str) -> datetime:
 async def get_top_live_streams(
     platform: str = Query("twitch", description="Platform: twitch or kick"),
     limit: int = Query(50, ge=1, le=500, description="Number of results to return"),
-    sort_by: str = Query("viewers", description="Sort by: 'viewers' (current viewers) or 'followers' (follower count)"),
     db: Session = Depends(get_db)
 ):
     """
@@ -94,11 +93,7 @@ async def get_top_live_streams(
     # if platform == "kick":
     #     query = query.filter(Channel.follower_count > 0)
     
-    # Apply sorting based on sort_by parameter
-    if sort_by == "followers":
-        query = query.order_by(desc(Channel.follower_count))
-    else:  # Default to viewers
-        query = query.order_by(desc(LiveSnapshot.viewer_count))
+    query = query.order_by(desc(LiveSnapshot.viewer_count))
     
     results = query.limit(limit).all()
     
@@ -482,7 +477,6 @@ async def export_csv(
 async def get_streams(
     platform: str = Query("kick", description="Platform: twitch or kick"),
     limit: int = Query(50, ge=1, le=500, description="Number of results to return"),
-    sort_by: str = Query("viewers", description="Sort by: 'viewers' or 'followers'"),
     db: Session = Depends(get_db)
 ):
     """
@@ -490,7 +484,7 @@ async def get_streams(
     """
     try:
         # Call the existing top live streams endpoint and convert to expected format
-        api_streams = await get_top_live_streams(platform=platform, limit=limit, sort_by=sort_by, db=db)
+        api_streams = await get_top_live_streams(platform=platform, limit=limit, db=db)
         
         if not api_streams:
             # If no streams returned, use demo data
