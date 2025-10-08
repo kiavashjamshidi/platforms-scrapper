@@ -10,6 +10,7 @@ A local dashboard for collecting and analyzing live streaming data from Twitch, 
 - PostgreSQL 14+
 
 **Install PostgreSQL (macOS):**
+
 ```bash
 brew install postgresql@14
 brew services start postgresql@14
@@ -32,16 +33,30 @@ psql postgres -c "CREATE DATABASE streaming_platform OWNER streamdata;"
 ```
 
 This will:
+
 - Check PostgreSQL is running
 - Create virtual environment if needed
 - Install dependencies
-- Start the application on http://localhost:8000
+- Start the application on [http://localhost:8000](http://localhost:8000)
+
+### 4. Docker Quick Commands
+
+```bash
+# Start services
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+```
 
 ## Access Points
 
-- **Dashboard**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/api/health
+- **Dashboard**: [http://localhost:8000](http://localhost:8000)
+- **API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Health Check**: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 
 ## Features
 
@@ -126,4 +141,60 @@ pytest tests/
 ├── static/
 │   └── index.html           # Dashboard UI
 └── .env                     # Environment variables
+```
+
+## API Documentation
+
+### Overview
+
+The Live Streaming Data Collection API provides endpoints to access and analyze live streaming data collected from various platforms (currently Twitch, with Kick and YouTube coming soon).
+
+### Base URL
+
+```
+http://localhost:8000
+```
+
+### Authentication
+
+Currently, the API does not require authentication. In production, you should implement API keys or OAuth.
+
+### Endpoints
+
+#### 1. Get Top Live Streams
+
+Retrieve the top live streams sorted by viewer count or follower count.
+
+**Endpoint:** `GET /live/top`
+
+**Query Parameters:**
+
+- `platform` (string, default: "twitch"): Platform to query (twitch/kick/youtube)
+- `limit` (integer, default: 50, max: 500): Number of results to return
+- `sort_by` (string, default: "viewers"): Sort by "viewers" (current viewer count) or "followers" (channel follower count)
+
+**Example Request:**
+
+```bash
+# Top streams by current viewers (default)
+curl "http://localhost:8000/live/top?platform=twitch&limit=10"
+
+# Top streams by follower count
+curl "http://localhost:8000/live/top?platform=twitch&limit=10&sort_by=followers"
+```
+
+**Example Response:**
+
+```json
+[
+  {
+    "platform": "twitch",
+    "channel_id": "12345678",
+    "username": "streamer_name",
+    "display_name": "Streamer Name",
+    "title": "Playing Awesome Game!",
+    "viewers": 12345,
+    "followers": 67890
+  }
+]
 ```
