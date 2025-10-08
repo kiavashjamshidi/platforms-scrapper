@@ -205,7 +205,7 @@ class TwitchClient:
             logins: List of usernames (max 100)
             
         Returns:
-            List of user objects
+            List of user objects with follower counts
         """
         params = {}
         
@@ -215,15 +215,28 @@ class TwitchClient:
             params["login"] = logins[:100]
         
         result = await self._make_request("users", params)
-        return [
-            {
+        users = result.get("data", [])
+        
+        # Get follower counts for each user
+        users_with_followers = []
+        for user in users:
+            user_id = user.get("id")
+            # Get follower count using the follows endpoint
+            try:
+                follows_result = await self._make_request("channels/followers", {"broadcaster_id": user_id})
+                follower_count = follows_result.get("total", 0)
+            except Exception as e:
+                logger.warning(f"Could not fetch follower count for {user.get('login')}: {e}")
+                follower_count = 0
+            
+            users_with_followers.append({
                 "id": user.get("id"),
                 "login": user.get("login"),
                 "display_name": user.get("display_name"),
-                "follower_count": user.get("follower_count", 0)  # Extract follower_count
-            }
-            for user in result.get("data", [])
-        ]
+                "follower_count": follower_count
+            })
+        
+        return users_with_followers
     
     async def get_games(self, game_ids: List[str] = None, names: List[str] = None) -> List[Dict[str, Any]]:
         """

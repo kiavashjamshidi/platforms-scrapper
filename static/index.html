@@ -22,11 +22,12 @@
         
         /* Top Filters Bar */
         .top-filters {
-            background: #2f3542;
-            color: white;
+            background: white;
+            color: #2f3542;
             padding: 15px 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: none; /* Hidden by default, shown when needed */
+            border-bottom: 2px solid #f1f2f6;
         }
         
         .top-filters.show {
@@ -48,19 +49,26 @@
         
         .filter-item label {
             font-size: 12px;
-            color: #a4b0be;
+            color: #57606f;
             font-weight: 500;
         }
         
         .filter-item select,
         .filter-item input {
             padding: 8px 12px;
-            border: 1px solid #57606f;
+            border: 1px solid #dfe4ea;
             border-radius: 4px;
-            background: #3d4454;
-            color: white;
+            background: #f8f9fa;
+            color: #2f3542;
             font-size: 14px;
             min-width: 120px;
+        }
+        
+        .filter-item select:focus,
+        .filter-item input:focus {
+            outline: none;
+            border-color: #3742fa;
+            background: white;
         }
         
         .filter-item input[type="text"] {
@@ -68,7 +76,7 @@
         }
         
         .refresh-btn {
-            background: #ff6b6b;
+            background: #3742fa;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -80,7 +88,7 @@
         }
         
         .refresh-btn:hover {
-            background: #ee5a52;
+            background: #5352ed;
         }
         
         /* Main Layout */
@@ -213,21 +221,25 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+            background: white;
+            color: #2f3542;
         }
         
         .search-input-group button {
             padding: 8px 15px;
-            background: #3742fa;
-            color: white;
-            border: none;
+            background: white;
+            color: #3742fa;
+            border: 1px solid #3742fa;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.3s;
+            font-weight: 500;
+            transition: all 0.3s;
         }
         
         .search-input-group button:hover {
-            background: #5352ed;
+            background: #3742fa;
+            color: white;
         }
         
         .section-header {
@@ -425,71 +437,15 @@
     </style>
 </head>
 <body>
-    <!-- Top Filters Bar -->
-    <div id="topFilters" class="top-filters">
-        <div class="filters-container">
-            <!-- Platform Filter - Always visible -->
-            <div class="filter-item">
-                <label>Platform</label>
-                <select id="platformFilter">
-                    <option value="kick">Kick</option>
-                    <option value="twitch">Twitch</option>
-                </select>
-            </div>
-            
-            <!-- Limit Filter - For data lists -->
-            <div class="filter-item" id="limitFilterItem">
-                <label>Limit</label>
-                <select id="limitFilter">
-                    <option value="10">10 results</option>
-                    <option value="25">25 results</option>
-                    <option value="50">50 results</option>
-                    <option value="100">100 results</option>
-                </select>
-            </div>
-            
-            <!-- Sort Filter - For sortable data -->
-            <div class="filter-item" id="sortFilterItem">
-                <label>Sort By</label>
-                <select id="sortFilter">
-                    <option value="viewers">Viewers</option>
-                    <option value="followers">Followers</option>
-                </select>
-            </div>
-            
-
-            
-            <!-- Channel Filter - For channel history -->
-            <div class="filter-item" id="channelFilterItem" style="display: none;">
-                <label>Channel ID/Username</label>
-                <input type="text" id="channelInput" placeholder="Enter channel...">
-            </div>
-            
-            <!-- Time Window Filter - For historical data -->
-            <div class="filter-item" id="timeWindowFilterItem" style="display: none;">
-                <label>Time Window</label>
-                <select id="timeWindow">
-                    <option value="24h">Last 24 hours</option>
-                    <option value="7d">Last 7 days</option>
-                    <option value="30d">Last 30 days</option>
-                </select>
-            </div>
-            
-            <!-- Refresh Button -->
-            <button class="refresh-btn" onclick="refreshData()">
-                🔄 Refresh
-            </button>
-        </div>
-    </div>
-
+    <!-- Top Filters Bar - Now moved under header for each page -->
     <div class="main-layout">
         <div class="sidebar">
             <h2>🎮 Analytics Dashboard</h2>
             
             <div class="nav-section">
                 <h3>Navigation</h3>
-                <button class="nav-button active" onclick="loadSection('live-streams')">
-                    📺 Live Streams
+                <button class="nav-button" onclick="loadSection('live-streams')">
+                    📺 Top Live Streams
                 </button>
                 <button class="nav-button" onclick="loadSection('most-active')">
                     🔥 Most Active
@@ -518,22 +474,20 @@
         
         <div class="main-content">
             <div class="header">
-                <h1 id="pageTitle">Live Streams</h1>
-                <div class="breadcrumb" id="breadcrumb">Dashboard > Live Streams</div>
+                <h1 id="pageTitle">Top Live Streams</h1>
+                <div class="breadcrumb" id="breadcrumb">Dashboard > Top Live Streams</div>
+            </div>
+            
+            <!-- Filters under header - specific to each page -->
+            <div id="pageFilters" class="top-filters show">
+                <div class="filters-container" id="filtersContainer">
+                    <!-- Filters will be dynamically added here based on the page -->
+                </div>
             </div>
             
             <div class="content-section">
-                <!-- Right-side Search Container -->
-                <div class="search-container" id="rightSearchContainer">
-                    <h4>🔍 Search Streams</h4>
-                    <div class="search-input-group">
-                        <input type="text" id="searchQuery" placeholder="Enter search term...">
-                        <button onclick="performSearch()">Search</button>
-                    </div>
-                </div>
-                
                 <div class="section-header">
-                    <h2 class="section-title" id="sectionTitle">Live Streams</h2>
+                    <h2 class="section-title" id="sectionTitle">Top Live Streams</h2>
                 </div>
                 <div id="content">
                     <div class="loading">Loading data...</div>
@@ -563,47 +517,83 @@
             }
         }
         
-        // Show/hide filter bar based on section
-        function showFilterBar(filtersToShow = []) {
-            const topFilters = document.getElementById('topFilters');
-            const allFilterItems = [
-                'limitFilterItem',
-                'sortFilterItem', 
-                'channelFilterItem',
-                'timeWindowFilterItem'
-            ];
+        // Create filter HTML dynamically
+        function createFilters(filters) {
+            const container = document.getElementById('filtersContainer');
+            container.innerHTML = '';
             
-            // Hide all optional filters first
-            allFilterItems.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.style.display = 'none';
-            });
-            
-            // Show requested filters
-            filtersToShow.forEach(filterId => {
-                const element = document.getElementById(filterId);
-                if (element) element.style.display = 'flex';
-            });
-            
-            // Show the filter bar
-            topFilters.classList.add('show');
-        }
-        
-        function hideFilterBar() {
-            document.getElementById('topFilters').classList.remove('show');
-        }
-        
-        function showSearchContainer(show = false) {
-            const searchContainer = document.getElementById('rightSearchContainer');
-            if (searchContainer) {
-                if (show) {
-                    searchContainer.classList.add('visible');
-                } else {
-                    searchContainer.classList.remove('visible');
+            filters.forEach(filter => {
+                const filterDiv = document.createElement('div');
+                filterDiv.className = 'filter-item';
+                
+                switch(filter) {
+                    case 'platform':
+                        filterDiv.innerHTML = `
+                            <label>Platform</label>
+                            <select id="platformFilter" onchange="refreshData()">
+                                <option value="twitch">Twitch</option>
+                                <option value="kick">Kick</option>
+                            </select>
+                        `;
+                        break;
+                    case 'limit':
+                        filterDiv.innerHTML = `
+                            <label>Limit</label>
+                            <select id="limitFilter" onchange="refreshData()">
+                                <option value="10">10 results</option>
+                                <option value="25">25 results</option>
+                                <option value="50" selected>50 results</option>
+                                <option value="100">100 results</option>
+                            </select>
+                        `;
+                        break;
+                    case 'sort':
+                        filterDiv.innerHTML = `
+                            <label>Sort By</label>
+                            <select id="sortFilter" onchange="refreshData()">
+                                <option value="viewers">Viewers</option>
+                                <option value="followers">Followers</option>
+                            </select>
+                        `;
+                        break;
+                    case 'timeWindow':
+                        filterDiv.innerHTML = `
+                            <label>Time Window</label>
+                            <select id="timeWindow" onchange="refreshData()">
+                                <option value="1h">Last Hour</option>
+                                <option value="6h">Last 6 Hours</option>
+                                <option value="24h" selected>Last 24 Hours</option>
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d">Last 30 Days</option>
+                            </select>
+                        `;
+                        break;
+                    case 'search':
+                        filterDiv.innerHTML = `
+                            <label>Search</label>
+                            <input type="text" id="searchQuery" placeholder="Enter search term..." 
+                                   style="min-width: 250px;" onkeypress="if(event.key==='Enter') performSearch()">
+                        `;
+                        break;
+                    case 'channel':
+                        filterDiv.innerHTML = `
+                            <label>Channel</label>
+                            <input type="text" id="channelInput" placeholder="Enter channel..." 
+                                   style="min-width: 200px;" onkeypress="if(event.key==='Enter') refreshData()">
+                        `;
+                        break;
                 }
-            }
+                container.appendChild(filterDiv);
+            });
+            
+            // Add refresh button
+            const refreshBtn = document.createElement('button');
+            refreshBtn.className = 'refresh-btn';
+            refreshBtn.onclick = refreshData;
+            refreshBtn.innerHTML = '🔄 Refresh';
+            container.appendChild(refreshBtn);
         }
-        
+
         // Load different sections with appropriate filters
         function loadSection(section) {
             currentSection = section;
@@ -617,17 +607,15 @@
             // Configure filters for each section
             switch(section) {
                 case 'live-streams':
-                    showFilterBar(['limitFilterItem', 'sortFilterItem']);
-                    showSearchContainer(false);
-                    document.getElementById('pageTitle').textContent = 'Live Streams';
-                    document.getElementById('breadcrumb').textContent = 'Dashboard > Live Streams';
-                    document.getElementById('sectionTitle').textContent = 'Live Streams';
+                    createFilters(['platform', 'limit', 'sort']);
+                    document.getElementById('pageTitle').textContent = 'Top Live Streams';
+                    document.getElementById('breadcrumb').textContent = 'Dashboard > Top Live Streams';
+                    document.getElementById('sectionTitle').textContent = 'Top Live Streams';
                     loadLiveStreams();
                     break;
                     
                 case 'most-active':
-                    showFilterBar(['limitFilterItem', 'sortFilterItem']);
-                    showSearchContainer(false);
+                    createFilters(['platform', 'limit', 'timeWindow']);
                     document.getElementById('pageTitle').textContent = 'Most Active';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Most Active';
                     document.getElementById('sectionTitle').textContent = 'Most Active Streams';
@@ -635,8 +623,7 @@
                     break;
                     
                 case 'search':
-                    showFilterBar(['limitFilterItem']);
-                    showSearchContainer(true);
+                    createFilters(['platform', 'limit', 'search']);
                     document.getElementById('pageTitle').textContent = 'Search Streams';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Search';
                     document.getElementById('sectionTitle').textContent = 'Search Results';
@@ -644,8 +631,7 @@
                     break;
                     
                 case 'channel-history':
-                    showFilterBar(['channelFilterItem', 'timeWindowFilterItem']);
-                    showSearchContainer(false);
+                    createFilters(['platform', 'channel', 'timeWindow']);
                     document.getElementById('pageTitle').textContent = 'Channel History';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Channel History';
                     document.getElementById('sectionTitle').textContent = 'Channel Analytics';
@@ -653,8 +639,7 @@
                     break;
                     
                 case 'categories':
-                    showFilterBar(['limitFilterItem']);
-                    showSearchContainer(false);
+                    createFilters(['platform', 'limit']);
                     document.getElementById('pageTitle').textContent = 'Categories';
                     document.getElementById('breadcrumb').textContent = 'Dashboard > Categories';
                     document.getElementById('sectionTitle').textContent = 'Stream Categories';
@@ -662,7 +647,7 @@
                     break;
                     
                 default:
-                    hideFilterBar();
+                    createFilters([]);
             }
         }
         
@@ -689,13 +674,20 @@
         
         // Get current filter values
         function getCurrentFilters() {
+            const platformEl = document.getElementById('platformFilter');
+            const limitEl = document.getElementById('limitFilter');
+            const sortEl = document.getElementById('sortFilter');
+            const searchEl = document.getElementById('searchQuery');
+            const channelEl = document.getElementById('channelInput');
+            const timeWindowEl = document.getElementById('timeWindow');
+            
             return {
-                platform: document.getElementById('platformFilter').value,
-                limit: parseInt(document.getElementById('limitFilter').value),
-                sort: document.getElementById('sortFilter').value,
-                search: document.getElementById('searchQuery').value,
-                channel: document.getElementById('channelInput').value,
-                timeWindow: document.getElementById('timeWindow').value
+                platform: platformEl ? platformEl.value : 'twitch',
+                limit: limitEl ? parseInt(limitEl.value) : 50,
+                sort: sortEl ? sortEl.value : 'viewers',
+                search: searchEl ? searchEl.value : '',
+                channel: channelEl ? channelEl.value : '',
+                timeWindow: timeWindowEl ? timeWindowEl.value : '24h'
             };
         }
         
@@ -735,29 +727,79 @@
             
             try {
                 const filters = getCurrentFilters();
-                // For now, use the same endpoint but with different sorting
-                const response = await fetch(`/api/streams?platform=${filters.platform}&limit=${filters.limit}`);
+                const timeWindow = filters.timeWindow || '24h';
+                
+                // Use the channel activity endpoint to get most active channels
+                const response = await fetch(`/api/live/most-active?platform=${filters.platform}&limit=${filters.limit}&window=${timeWindow}`);
                 
                 if (!response.ok) throw new Error('Failed to fetch most active streams');
                 
                 const data = await response.json();
-                let streams = data.streams || [];
+                // API returns array directly, not wrapped in object
+                const channels = Array.isArray(data) ? data : (data.channels || []);
                 
-                // Sort by viewers (most active)
-                streams.sort((a, b) => (b.viewers || 0) - (a.viewers || 0));
-                
-                currentData = streams;
+                currentData = channels;
                 
                 if (currentData.length === 0) {
-                    content.innerHTML = '<div class="no-data">No active streams found</div>';
+                    content.innerHTML = '<div class="no-data">No active streams found for the selected time window</div>';
                     return;
                 }
                 
-                renderStreamsTable(currentData);
+                // Render as table with activity stats
+                renderMostActiveTable(currentData, timeWindow);
             } catch (error) {
                 console.error('Error loading most active streams:', error);
-                content.innerHTML = '<div class="no-data">Error loading most active streams</div>';
+                content.innerHTML = '<div class="no-data">Error loading most active streams. Please try again.</div>';
             }
+        }
+        
+        // Render most active table with stats
+        function renderMostActiveTable(channels, timeWindow) {
+            const content = document.getElementById('content');
+            
+            let html = `
+                <div style="padding: 20px;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Channel</th>
+                                <th>Platform</th>
+                                <th>Total Streams</th>
+                                <th>Avg Viewers</th>
+                                <th>Peak Viewers</th>
+                                <th>Total Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            channels.forEach((channel, index) => {
+                const hours = channel.total_duration_minutes ? Math.round(channel.total_duration_minutes / 60) : 0;
+                html += `
+                    <tr>
+                        <td><strong>${index + 1}</strong></td>
+                        <td>
+                            <a href="${channel.stream_url || '#'}" target="_blank" class="stream-link">
+                                ${channel.display_name || channel.username}
+                            </a>
+                        </td>
+                        <td><span class="platform-badge platform-${channel.platform}">${channel.platform}</span></td>
+                        <td><strong>${channel.total_snapshots || 0}</strong></td>
+                        <td class="viewer-count">${Math.round(channel.avg_viewers || 0).toLocaleString()}</td>
+                        <td class="viewer-count">${(channel.peak_viewers || 0).toLocaleString()}</td>
+                        <td>${hours}h</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            content.innerHTML = html;
         }
         
         // Load search interface
@@ -1056,6 +1098,10 @@
         function renderStreamsTable(streams) {
             const content = document.getElementById('content');
             
+            // Check if we're showing Kick streams (they don't have follower data)
+            const filters = getCurrentFilters();
+            const showFollowers = filters.platform !== 'kick';
+            
             const html = `
                 <div class="table-container">
                     <table class="data-table">
@@ -1065,7 +1111,7 @@
                                 <th class="sortable" onclick="sortTable('channel')">Channel</th>
                                 <th class="sortable" onclick="sortTable('platform')">Platform</th>
                                 <th class="sortable" onclick="sortTable('viewers')">Viewers</th>
-                                <th class="sortable" onclick="sortTable('followers')">Followers</th>
+                                ${showFollowers ? '<th class="sortable" onclick="sortTable(\'followers\')">Followers</th>' : ''}
                                 <th class="sortable" onclick="sortTable('category')">Category</th>
                                 <th class="sortable" onclick="sortTable('language')">Language</th>
                                 <th class="sortable" onclick="sortTable('started_at')">Start Time</th>
@@ -1084,7 +1130,7 @@
                                         </span>
                                     </td>
                                     <td class="viewer-count">${(stream.viewers || 0).toLocaleString()}</td>
-                                    <td class="follower-count">${(stream.followers || 0).toLocaleString()}</td>
+                                    ${showFollowers ? `<td class="follower-count">${(stream.followers || 0).toLocaleString()}</td>` : ''}
                                     <td>${stream.category || 'N/A'}</td>
                                     <td>${stream.language || 'English'}</td>
                                     <td class="start-time">${stream.started_at ? new Date(stream.started_at).toLocaleString() : 'N/A'}</td>

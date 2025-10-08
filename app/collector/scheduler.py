@@ -117,70 +117,69 @@ class StreamCollector:
 
         # Check if we have Twitch API credentials
         if not settings.twitch_client_id or not settings.twitch_client_secret:
-            logger.warning("Twitch API credentials not found, using demo data")
-            logger.warning(f"twitch_client_id present: {bool(settings.twitch_client_id)}")
-            logger.warning(f"twitch_client_secret present: {bool(settings.twitch_client_secret)}")
-            twitch_streams = self._get_realistic_twitch_streams()
-        else:
-            logger.info(f"Twitch credentials found - Client ID: {settings.twitch_client_id[:10]}...")
-            try:
-                # Use the official Twitch API client
-                logger.info("Initializing TwitchClient...")
-                async with TwitchClient() as client:
-                    logger.info("TwitchClient initialized, fetching streams...")
+            logger.error("Twitch API credentials not found!")
+            logger.error(f"twitch_client_id present: {bool(settings.twitch_client_id)}")
+            logger.error(f"twitch_client_secret present: {bool(settings.twitch_client_secret)}")
+            raise ValueError("Twitch API credentials are required")
+        
+        logger.info(f"Twitch credentials found - Client ID: {settings.twitch_client_id[:10]}...")
+        try:
+            # Use the official Twitch API client
+            logger.info("Initializing TwitchClient...")
+            async with TwitchClient() as client:
+                logger.info("TwitchClient initialized, fetching streams...")
+                
+                # Get top live streams sorted by viewer count
+                streams_response = await client.get_streams(first=50)
+                streams_data = streams_response.get("data", [])
+                
+                logger.info(f"Received {len(streams_data)} streams from Twitch API")
+                
+                if not streams_data:
+                    logger.error("No live streams returned from Twitch API")
+                    raise ValueError("No live streams available from Twitch API")
+                
+                logger.info(f"Found {len(streams_data)} live streams from Twitch API")
+                logger.info(f"First stream example: {streams_data[0].get('user_login')} - {streams_data[0].get('viewer_count')} viewers")
+                
+                # Get user IDs to fetch follower counts
+                user_ids = [stream["user_id"] for stream in streams_data]
+                logger.info(f"Fetching user info for {len(user_ids)} users...")
+                
+                users_response = await client.get_users(user_ids=user_ids)
+                users_data = {user["id"]: user for user in users_response}
+                logger.info(f"Received info for {len(users_data)} users")
+                
+                twitch_streams = []
+                for stream in streams_data:
+                    user_id = stream["user_id"]
+                    user_data = users_data.get(user_id, {})
                     
-                    # Get top live streams sorted by viewer count
-                    streams_response = await client.get_streams(first=50)
-                    streams_data = streams_response.get("data", [])
-                    
-                    logger.info(f"Received {len(streams_data)} streams from Twitch API")
-                    
-                    if not streams_data:
-                        logger.warning("No live streams returned from Twitch API")
-                        logger.warning("Using demo data as fallback")
-                        twitch_streams = self._get_realistic_twitch_streams()
-                    else:
-                        logger.info(f"Found {len(streams_data)} live streams from Twitch API")
-                        logger.info(f"First stream example: {streams_data[0].get('user_login')} - {streams_data[0].get('viewer_count')} viewers")
-                        
-                        # Get user IDs to fetch follower counts
-                        user_ids = [stream["user_id"] for stream in streams_data]
-                        logger.info(f"Fetching user info for {len(user_ids)} users...")
-                        
-                        users_response = await client.get_users(user_ids=user_ids)
-                        users_data = {user["id"]: user for user in users_response.get("data", [])}
-                        logger.info(f"Received info for {len(users_data)} users")
-                        
-                        twitch_streams = []
-                        for stream in streams_data:
-                            user_id = stream["user_id"]
-                            user_data = users_data.get(user_id, {})
-                            
-                            twitch_streams.append({
-                                "channel_id": user_id,
-                                "username": stream["user_login"],
-                                "display_name": stream["user_name"],
-                                "title": stream["title"],
-                                "game_name": stream["game_name"],
-                                "game_id": stream["game_id"],
-                                "viewer_count": stream["viewer_count"],
-                                "language": stream["language"],
-                                "started_at": datetime.fromisoformat(stream["started_at"].replace("Z", "+00:00")),
-                                "thumbnail_url": stream["thumbnail_url"],
-                                "stream_url": f"https://twitch.tv/{stream['user_login']}",
-                                "follower_count": user_data.get("view_count", 0)  # Twitch API doesn't provide follower count easily
-                            })
-                        
-                        logger.info(f"Successfully parsed {len(twitch_streams)} Twitch streams")
-                    
-            except Exception as e:
-                logger.error(f"Error fetching real Twitch streams from official API: {e}")
-                logger.error(f"Error type: {type(e).__name__}")
-                logger.error(f"Error details: {str(e)}")
-                import traceback
-                logger.error(f"Traceback: {traceback.format_exc()}")
-                logger.warning("Falling back to demo data")
-                twitch_streams = self._get_realistic_twitch_streams()
+                    twitch_streams.append({
+                        "channel_id": user_id,
+                        "username": stream["user_login"],
+                        "display_name": stream["user_name"],
+                        "title": stream["title"],
+                        "game_name": stream["game_name"],
+                        "game_id": stream["game_id"],
+                        "viewer_count": stream["viewer_count"],
+                        "language": stream["language"],
+                        "started_at": datetime.fromisoformat(stream["started_at"].replace("Z", "+00:00")),
+                        "thumbnail_url": stream["thumbnail_url"],
+                        "stream_url": f"https://twitch.tv/{stream['user_login']}",
+                        "follower_count": user_data.get("follower_count", 0)
+                    })
+                
+                logger.info(f"Successfully parsed {len(twitch_streams)} Twitch streams")
+                
+        except Exception as e:
+            logger.error(f"Error fetching real Twitch streams from official API: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            logger.error(f"Error details: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            # Don't use demo data, just raise the exception
+            raise
         
         try:
             logger.info(f"Saving {len(twitch_streams)} Twitch streams to database...")
@@ -465,39 +464,47 @@ class StreamCollector:
                     return []
                 
                 logger.info(f"Found {len(livestreams)} live streams from Kick API")
-                logger.info(f"First stream example: {livestreams[0].get('channel', {}).get('slug', 'unknown')}")
+                if livestreams:
+                    logger.info(f"First stream structure: {livestreams[0]}")
                 
                 streams = []
                 for i, stream_data in enumerate(livestreams):
                     try:
                         # Parse the stream data from official API response
-                        channel_slug = stream_data.get("channel", {}).get("slug") or stream_data.get("slug")
+                        # Kick API returns slug at top level, not in a channel object
+                        channel_slug = stream_data.get("slug")
+                        channel_id = stream_data.get("channel_id")
                         
-                        if not channel_slug:
-                            logger.warning(f"Stream {i} missing channel slug, skipping")
+                        if not channel_slug or not channel_id:
+                            logger.warning(f"Stream {i} missing channel slug or ID, skipping. Stream data keys: {stream_data.keys()}")
                             continue
                         
-                        # Get channel info for follower count
-                        logger.debug(f"Fetching channel info for {channel_slug}...")
-                        channel_info = await client.get_channel_info(channel_slug)
+                        # Get follower count if available in stream data
+                        follower_count = stream_data.get("followers_count", 0) or stream_data.get("follower_count", 0)
+                        
+                        # Get category info
+                        category = stream_data.get("category", {}) or {}
+                        game_name = category.get("name", "Just Chatting") if isinstance(category, dict) else "Just Chatting"
+                        game_id = str(category.get("id", "1")) if isinstance(category, dict) else "1"
                         
                         streams.append({
-                            "channel_id": str(stream_data.get("channel", {}).get("id", stream_data.get("id"))),
+                            "channel_id": str(channel_id),
                             "username": channel_slug,
-                            "display_name": stream_data.get("channel", {}).get("username", channel_slug),
-                            "title": stream_data.get("session_title", f"Live on {channel_slug}"),
-                            "game_name": stream_data.get("categories", [{}])[0].get("name", "Just Chatting") if stream_data.get("categories") else "Just Chatting",
-                            "game_id": str(stream_data.get("categories", [{}])[0].get("id", "1")) if stream_data.get("categories") else "1",
+                            "display_name": channel_slug,  # Kick doesn't provide separate display name in this endpoint
+                            "title": stream_data.get("stream_title", f"Live on {channel_slug}"),
+                            "game_name": game_name,
+                            "game_id": game_id,
                             "viewer_count": stream_data.get("viewer_count", 0),
                             "language": stream_data.get("language", "en"),
-                            "started_at": datetime.fromisoformat(stream_data["created_at"].replace("Z", "+00:00")) if stream_data.get("created_at") else datetime.utcnow(),
-                            "thumbnail_url": stream_data.get("thumbnail", {}).get("url") if stream_data.get("thumbnail") else None,
+                            "started_at": datetime.fromisoformat(stream_data["started_at"].replace("Z", "+00:00")) if stream_data.get("started_at") else datetime.utcnow(),
+                            "thumbnail_url": stream_data.get("thumbnail"),
                             "stream_url": f"https://kick.com/{channel_slug}",
-                            "follower_count": channel_info.get("follower_count", 0)
+                            "follower_count": follower_count
                         })
                         
                     except Exception as e:
                         logger.warning(f"Error parsing stream {i} data: {e}")
+                        logger.warning(f"Stream data: {stream_data}")
                         continue
                 
                 logger.info(f"Successfully parsed {len(streams)} Kick streams")

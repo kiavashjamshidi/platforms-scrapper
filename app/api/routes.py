@@ -147,7 +147,7 @@ async def get_most_active_streamers(
         raise HTTPException(status_code=400, detail=str(e))
     
     # Aggregate stream statistics by channel
-    # Use SQLite-compatible date truncation with strftime
+    # Use PostgreSQL date_trunc to count distinct hourly sessions
     results = (
         db.query(
             Channel.channel_id,
@@ -155,7 +155,7 @@ async def get_most_active_streamers(
             Channel.display_name,
             Channel.follower_count,
             Channel.profile_image_url,
-            func.count(func.distinct(func.strftime('%Y-%m-%d %H', LiveSnapshot.started_at))).label("stream_count"),
+            func.count(func.distinct(func.date_trunc('hour', LiveSnapshot.started_at))).label("stream_count"),
             func.count(LiveSnapshot.id).label("total_snapshots"),
             func.avg(LiveSnapshot.viewer_count).label("avg_viewers"),
             func.max(LiveSnapshot.viewer_count).label("peak_viewers"),
@@ -204,7 +204,9 @@ async def get_most_active_streamers(
             "avg_viewers": round(float(row.avg_viewers or 0), 2),
             "peak_viewers": row.peak_viewers or 0,
             "last_seen": row.last_seen,
-            "stream_url": stream_url
+            "stream_url": stream_url,
+            # Calculate total hours: snapshots are collected every 2 minutes
+            "total_duration_minutes": row.total_snapshots * 2
         }
         for row in results
     ]
@@ -523,7 +525,7 @@ async def get_streams(
 
 @router.get("/categories")
 async def get_categories(
-    platform: str = Query("kick", description="Platform: twitch or kick"),
+    platform: str = Query("twitch", description="Platform: twitch or kick"),
     limit: int = Query(50, ge=1, le=500, description="Number of results to return"),
     db: Session = Depends(get_db)
 ):
@@ -532,21 +534,23 @@ async def get_categories(
     """
     try:
         # Call the existing stats endpoint
-        categories = await get_category_stats(platform=platform, window="24h", db=db)
-        limited_categories = categories[:limit]
+        categories = await get_category_stats(platform=platform, window="24h", limit=limit, db=db)
         
         # Convert to expected format
         result = []
-        for cat in limited_categories:
+        for cat in categories:
             result.append({
-                "name": cat.category,
-                "streams": cat.active_streams,
+                "name": cat.game_name,
+                "streams": cat.total_streams,
                 "viewers": cat.total_viewers,
+                "avg_viewers": cat.avg_viewers,
+                "peak_viewers": cat.peak_viewers,
                 "platform": platform
             })
         
         return {"categories": result}
     except Exception as e:
+        print(f"Error fetching categories: {e}")
         # Return empty result instead of fake demo data
         return {
             "categories": [],
