@@ -21,7 +21,7 @@ init_db()
 # Create FastAPI app
 app = FastAPI(
     title="Live Streaming Data Collection API",
-    description="Collect and analyze live streaming data from Twitch, Kick, and YouTube",
+    description="Collect and analyze live streaming data from Twitch and Kick",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"

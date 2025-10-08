@@ -41,7 +41,7 @@ def parse_time_window(window: str) -> datetime:
 
 @router.get("/live/top", response_model=List[LiveStreamResponse])
 async def get_top_live_streams(
-    platform: str = Query("twitch", description="Platform: twitch, kick, or youtube"),
+    platform: str = Query("twitch", description="Platform: twitch or kick"),
     limit: int = Query(50, ge=1, le=500, description="Number of results to return"),
     sort_by: str = Query("viewers", description="Sort by: 'viewers' (current viewers) or 'followers' (follower count)"),
     db: Session = Depends(get_db)
@@ -124,7 +124,7 @@ async def get_top_live_streams(
 
 @router.get("/live/most-active")
 async def get_most_active_streamers(
-    platform: str = Query("twitch", description="Platform: twitch, kick, or youtube"),
+    platform: str = Query("twitch", description="Platform: twitch or kick"),
     window: str = Query("7d", description="Time window: e.g., '24h', '7d', '30d'"),
     limit: int = Query(10, ge=1, le=100, description="Number of results to return"),
     db: Session = Depends(get_db)
@@ -179,7 +179,7 @@ async def get_most_active_streamers(
     )
     
     # Ensure Kick platform data is properly handled
-    if platform not in ["twitch", "kick", "youtube"]:
+    if platform not in ["twitch", "kick"]:
         raise HTTPException(status_code=400, detail="Invalid platform specified")
     
     # Update stream_url for Kick
@@ -352,7 +352,7 @@ async def get_channel_history(
 
 @router.get("/stats/categories", response_model=List[CategoryStats])
 async def get_category_stats(
-    platform: str = Query("twitch", description="Platform: twitch, kick, or youtube"),
+    platform: str = Query("twitch", description="Platform: twitch or kick"),
     window: str = Query("7d", description="Time window: e.g., '24h', '7d', '30d'"),
     limit: int = Query(10, ge=1, le=100, description="Number of categories to return"),
     db: Session = Depends(get_db)
@@ -400,7 +400,7 @@ async def get_category_stats(
 
 @router.get("/export/csv")
 async def export_csv(
-    platform: str = Query("twitch", description="Platform: twitch, kick, or youtube"),
+    platform: str = Query("twitch", description="Platform: twitch or kick"),
     window: str = Query("24h", description="Time window: e.g., '24h', '7d', '30d'"),
     db: Session = Depends(get_db)
 ):
@@ -699,7 +699,7 @@ async def clear_all_data(db: Session = Depends(get_db)):
 
 @router.get("/search-db", response_model=List[LiveStreamResponse])
 async def search_streams_database(
-    platform: str = Query("twitch", description="Platform: twitch, kick, or youtube"),
+    platform: str = Query("twitch", description="Platform: twitch, or kick"),
     q: str = Query(..., description="Search query (title, game, or username)"),
     limit: int = Query(20, ge=1, le=100, description="Number of results to return"),
     db: Session = Depends(get_db)

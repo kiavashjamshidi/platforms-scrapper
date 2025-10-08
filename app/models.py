@@ -11,7 +11,7 @@ class Channel(Base):
     __tablename__ = "channels"
     
     id = Column(Integer, primary_key=True, index=True)
-    platform = Column(String(20), nullable=False, index=True)  # twitch, kick, youtube
+    platform = Column(String(20), nullable=False, index=True)  # twitch, kick
     channel_id = Column(String(100), nullable=False, index=True)  # Platform-specific ID
     username = Column(String(100), nullable=False, index=True)
     display_name = Column(String(100))

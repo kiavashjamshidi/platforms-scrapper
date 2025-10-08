@@ -1,6 +1,6 @@
 # Live Streaming Data Collection Dashboard
 
-A local dashboard for collecting and analyzing live streaming data from Twitch, Kick, and YouTube.
+A local dashboard for collecting and analyzing live streaming data from Twitch and Kick.
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ docker-compose logs -f
 
 ## Features
 
-- ✅ Real-time data collection from Twitch, Kick, and YouTube
+- ✅ Real-time data collection from Twitch and Kick
 - ✅ Automatic collection every 2 minutes
 - ✅ Search and filter streams
 - ✅ Sort by viewers, followers, etc.
@@ -78,7 +78,7 @@ curl -X POST "http://localhost:8000/api/collect-all"
 
 Edit `.env` file to configure:
 - Database connection
-- API credentials (Twitch, Kick, YouTube)
+- API credentials (Twitch, Kick)
 - Collection interval
 
 ## Troubleshooting
@@ -136,8 +136,7 @@ pytest tests/
 │   └── collector/
 │       ├── scheduler.py     # Data collection scheduler
 │       ├── twitch.py        # Twitch API client
-│       ├── kick.py          # Kick API client
-│       └── youtube.py       # YouTube API client
+│       └── kick.py          # Kick API client
 ├── static/
 │   └── index.html           # Dashboard UI
 └── .env                     # Environment variables
@@ -147,7 +146,7 @@ pytest tests/
 
 ### Overview
 
-The Live Streaming Data Collection API provides endpoints to access and analyze live streaming data collected from various platforms (currently Twitch, with Kick and YouTube coming soon).
+The Live Streaming Data Collection API provides endpoints to access and analyze live streaming data collected from various platforms (currently Twitch and Kick).
 
 ### Base URL
 
@@ -169,7 +168,7 @@ Retrieve the top live streams sorted by viewer count or follower count.
 
 **Query Parameters:**
 
-- `platform` (string, default: "twitch"): Platform to query (twitch/kick/youtube)
+- `platform` (string, default: "twitch"): Platform to query (twitch/kick)
 - `limit` (integer, default: 50, max: 500): Number of results to return
 - `sort_by` (string, default: "viewers"): Sort by "viewers" (current viewer count) or "followers" (channel follower count)
 
