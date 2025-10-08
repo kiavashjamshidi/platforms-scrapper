@@ -104,6 +104,9 @@ docker-compose logs -f
 **Popular Categories on Twitch:**
 ![Categories Statistics - Twitch](imgs/categories-twitch.png)
 
+**Popular Categories on Kick:**
+![Categories Statistics - Kick](imgs/categories-kick.png)
+
 ## Manual Collection
 
 Trigger data collection manually:
