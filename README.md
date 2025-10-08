@@ -77,6 +77,7 @@ curl -X POST "http://localhost:8000/api/collect-all"
 ## Configuration
 
 Edit `.env` file to configure:
+
 - Database connection
 - API credentials (Twitch, Kick)
 - Collection interval
@@ -84,11 +85,13 @@ Edit `.env` file to configure:
 ## Troubleshooting
 
 ### PostgreSQL not running
+
 ```bash
 brew services start postgresql@14
 ```
 
 ### Database connection error
+
 ```bash
 # Check PostgreSQL status
 pg_isready -h localhost -p 5432
@@ -99,6 +102,7 @@ createdb streaming_platform -O streamdata
 ```
 
 ### Port 8000 already in use
+
 ```bash
 # Find process using port 8000
 lsof -ti:8000 | xargs kill -9
@@ -150,9 +154,9 @@ The Live Streaming Data Collection API provides endpoints to access and analyze 
 
 ### Base URL
 
-```
-http://localhost:8000
-```
+**Base URL:**  
+
+- `http://localhost:8000`
 
 ### Authentication
 
